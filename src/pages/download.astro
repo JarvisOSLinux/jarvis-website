@@ -68,8 +68,8 @@ const downloadSchema = JSON.stringify({
           <p>
             JavaScript is required to fetch the latest release from GitHub. You can also
             browse releases directly at
-            <a href="https://github.com/jarvisos/jarvisos/releases" target="_blank" rel="noopener noreferrer">
-              github.com/jarvisos/jarvisos/releases</a>.
+            <a href="https://github.com/JarvisOSLinux/jarvisos/releases" target="_blank" rel="noopener noreferrer">
+              github.com/JarvisOSLinux/jarvisos/releases</a>.
           </p>
         </div>
       </noscript>
@@ -127,11 +127,11 @@ const downloadSchema = JSON.stringify({
           JARVIS OS is fully open source. Clone the build system and run the seven-script
           pipeline to produce your own ISO from scratch.
         </p>
-        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>git clone https://github.com/jarvisos/jarvisos.git
+        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>git clone https://github.com/JarvisOSLinux/jarvisos.git
 cd jarvisos
 sudo ./01-*.sh   # begin the build pipeline</code></pre>
         <a
-          href="https://github.com/jarvisos/jarvisos"
+          href="https://github.com/JarvisOSLinux/jarvisos"
           class="btn btn-outline"
           style="margin-top: var(--space-lg);"
           target="_blank"
@@ -192,7 +192,7 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
   async function fetchRelease() {
     try {
       const res = await fetch(
-        "https://api.github.com/repos/jarvisos/jarvisos/releases/latest"
+        "https://api.github.com/repos/JarvisOSLinux/jarvisos/releases/latest"
       );
       if (!res.ok) throw new Error("No releases found");
       const data = await res.json();
@@ -229,7 +229,7 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
       if (tagEl) tagEl.textContent = "No releases yet";
       if (bodyEl)
         bodyEl.innerHTML =
-          'Check <a href="https://github.com/jarvisos/jarvisos/releases">GitHub releases</a> directly.';
+          'Check <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a> directly.';
     }
   }
 
