@@ -75,7 +75,7 @@ const threats = [
     severity: "critical" as const,
     description:
       "The LLM autonomously escalates privileges by requesting sudo access through MCP tool calls without explicit user authorization, bypassing standard privilege separation.",
-    mitigation: "TLA (Threat Level Access) system + PolicyKit enforcement. Escalation requires out-of-band confirmation.",
+    mitigation: "TLA (Threat Level Access): a userspace confirmation gate in the JARVIS daemon evaluates every privileged tool call; escalation requires explicit out-of-band user approval.",
   },
   {
     title: "Sudo Capability Exploitation",
@@ -216,9 +216,10 @@ const threats = [
           <h3 class="text-cyan">TLA (Threat Level Access) System</h3>
           <p>
             Dynamic, context-aware privilege model: Guest &rarr; User &rarr; Elevated &rarr;
-            Sudo &rarr; Kernel. Enforced at the OS level. Every tool invocation is evaluated
-            against the current TLA level. Escalation requires explicit out-of-band user
-            confirmation — it cannot be triggered by model output alone.
+            Sudo &rarr; Kernel. Enforced by the JARVIS daemon in userspace: every tool invocation
+            is evaluated against the current TLA level, and escalation requires explicit
+            out-of-band user confirmation — it cannot be triggered by model output alone. A
+            kernel-resident policy engine on /dev/jarvis is the OS embodiment's enforcement path.
           </p>
         </div>
         <div class="card">
@@ -257,8 +258,9 @@ const threats = [
         <div class="contribution-item">
           <span class="contribution-num mono text-cyan">02</span>
           <p>
-            Architectural mitigations for each threat class, implemented and verified against
-            source code in the JARVIS OS platform.
+            Architectural mitigations for each threat class, at varying stages of implementation
+            across the JARVIS OS platform — see the security-architecture spec for the
+            per-threat status.
           </p>
         </div>
         <div class="contribution-item">

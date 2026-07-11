@@ -6,7 +6,7 @@ const buildScripts = [
   { num: "02", title: "User Setup", desc: "Create user accounts, set permissions, and configure sudo policies." },
   { num: "03", title: "Desktop Environment", desc: "Install and configure KDE Plasma 6 with Wayland session defaults." },
   { num: "04", title: "AI Stack", desc: "Install Ollama, configure local LLM inference, and set up model defaults." },
-  { num: "05", title: "Jarvis Core", desc: "Deploy the jarvis-core daemon, CLI tools, and session management." },
+  { num: "05", title: "Project-JARVIS", desc: "Deploy the Project-JARVIS daemon, CLI tools, and session management." },
   { num: "06", title: "MCP Integration", desc: "Set up the MCP server registry, tool permissions, and orchestration layer." },
   { num: "07", title: "ISO Packaging", desc: "Package everything into a bootable ISO with Calamares installer." },
 ];
@@ -47,7 +47,7 @@ qemu-system-x86_64 -m 4G -smp 4 -cdrom jarvisos-*.iso</code></pre>
         <div class="card">
           <h3>Option B: Build from Source</h3>
           <p>Clone the repo and run the full seven-script build pipeline on an Arch Linux host.</p>
-          <pre class="mono code-block"><code>git clone https://github.com/jarvisos/jarvisos.git
+          <pre class="mono code-block"><code>git clone https://github.com/JarvisOSLinux/jarvisos.git
 cd jarvisos
 
 # Run each build stage sequentially
@@ -55,7 +55,7 @@ sudo ./01-base-system.sh
 sudo ./02-user-setup.sh
 # ... through 07</code></pre>
           <a
-            href="https://github.com/jarvisos/jarvisos"
+            href="https://github.com/JarvisOSLinux/jarvisos"
             class="btn btn-outline"
             style="margin-top: var(--space-lg);"
             target="_blank"
@@ -110,7 +110,7 @@ jarvis
 # - Execute commands with configured privilege levels
 # - Maintain conversational context across interactions</code></pre>
         <p class="mono text-muted" style="margin-top: var(--space-lg); font-size: 0.8rem;">
-          See <a href="https://github.com/jarvisos/jarvis-core" target="_blank" rel="noopener noreferrer">jarvis-core</a> for full CLI documentation.
+          See <a href="https://github.com/JarvisOSLinux/Project-JARVIS" target="_blank" rel="noopener noreferrer">Project-JARVIS</a> for full CLI documentation.
         </p>
       </div>
     </div>

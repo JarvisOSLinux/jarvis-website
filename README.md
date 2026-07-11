@@ -6,7 +6,7 @@ The official website for [JARVIS OS](https://jarvisos.github.io), an Arch Linux-
 
 JARVIS OS is a research platform studying the security implications of granting LLMs OS-level privileges. It combines Arch Linux, KDE Plasma 6, Ollama for local LLM inference, and an MCP (Model Context Protocol) orchestration layer that lets the AI autonomously manage system tools with sudo access.
 
-The project's academic contribution is a seven-threat taxonomy derived from hands-on experience building and operating the system — including the novel finding of **forgetful context**, where LLMs silently drop previously stated security constraints mid-session.
+The project's academic contribution is a six-threat taxonomy derived from hands-on experience building and operating the system — including the novel finding of **bloated context**, where context-window saturation becomes a discrete security threat: the LLM silently drops previously stated security constraints mid-session.
 
 ## Website
 
@@ -36,10 +36,12 @@ npm run preview    # preview production build
 
 | Repo | Description |
 |---|---|
-| [jarvisos](https://github.com/jarvisos/jarvisos) | Main build system (7-script pipeline) |
-| [jarvis-core](https://github.com/jarvisos/jarvis-core) | AI daemon and CLI |
-| [mcp-servers](https://github.com/jarvisos/mcp-servers) | MCP orchestration layer |
-| [calamares-config](https://github.com/jarvisos/calamares-config) | Calamares installer config |
+| [jarvisos](https://github.com/JarvisOSLinux/jarvisos) | AI-native distro + 7-script build pipeline |
+| [Project-JARVIS](https://github.com/JarvisOSLinux/Project-JARVIS) | AI assistant daemon (LLM orchestration, TUI) |
+| [dispatch](https://github.com/JarvisOSLinux/dispatch) | Signal-driven task orchestrator |
+| [dmcp](https://github.com/JarvisOSLinux/dmcp) | MCP server lifecycle manager |
+| [contextor](https://github.com/JarvisOSLinux/contextor) | Persistent memory store |
+| [mcp-registry](https://github.com/JarvisOSLinux/mcp-registry) | Community-vetted MCP server catalog |
 
 ## License
 
