@@ -1,0 +1,114 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const CATEGORY_ORDER = ["Getting Started", "Build System", "Running JARVIS", "Reference"] as const;
+const CATEGORY_BLURB: Record<(typeof CATEGORY_ORDER)[number], string> = {
+  "Getting Started": "What JARVIS OS is, system requirements, and how to get it running.",
+  "Build System": "The script pipeline that produces a bootable ISO, plus building the custom kernel.",
+  "Running JARVIS": "Running the AI agent — standalone, or as the full daemon on an installed system.",
+  Reference: "Errors you'll hit and how to fix them.",
+};
+
+const allDocs = await getCollection("docs");
+const categories = CATEGORY_ORDER.map((category) => {
+  const entries = allDocs
+    .filter((d) => d.data.category === category)
+    .sort((a, b) => a.data.order - b.data.order);
+  return { category, entries, blurb: CATEGORY_BLURB[category] };
+});
+---
+
+<BaseLayout
+  title="Documentation"
+  description="JARVIS OS documentation — installing, the build pipeline, building the custom kernel, running the AI agent, and troubleshooting."
+>
+  <section class="section">
+    <div class="container">
+      <span class="section-label">Documentation</span>
+      <h1 class="section-title">Docs</h1>
+      <p class="docs-intro">
+        Everything you need to understand, build, and run JARVIS OS — organized like a wiki.
+        Pick a section below, or jump straight to an article from the sidebar once you're in.
+      </p>
+    </div>
+  </section>
+
+  <!-- Quick start -->
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+      <h2 style="margin-bottom: var(--space-xl);">Quick Start</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Option A: Download ISO</h3>
+          <p>The fastest way to try JARVIS OS. Download the pre-built ISO, flash it, and boot.</p>
+          <a href="/docs/installing" class="btn btn-outline" style="margin-top: var(--space-lg);">
+            Installing JARVIS OS &rarr;
+          </a>
+        </div>
+        <div class="card">
+          <h3>Option B: Build from Source</h3>
+          <p>Clone the repo and run the build pipeline on an Arch Linux host to produce your own ISO.</p>
+          <a href="/docs/build-pipeline" class="btn btn-outline" style="margin-top: var(--space-lg);">
+            The Build Pipeline &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Wiki sections -->
+  <section class="section">
+    <div class="container">
+      <span class="section-label">Browse</span>
+      <h2 style="margin-bottom: var(--space-xl);">Sections</h2>
+      <div class="grid-2">
+        {categories.map(({ category, entries, blurb }) => (
+          <div class="card section-card">
+            <h3>{category}</h3>
+            <p>{blurb}</p>
+            <ul class="section-article-list">
+              {entries.map((entry) => (
+                <li>
+                  <a href={`/docs/${entry.id}`}>{entry.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .docs-intro {
+    font-size: 1.05rem;
+    max-width: 640px;
+  }
+
+  .section-card p {
+    margin-bottom: var(--space-md);
+  }
+
+  .section-article-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .section-article-list a {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .section-article-list a:hover {
+    color: var(--cyan);
+  }
+
+  .section-article-list a::before {
+    content: "→ ";
+    color: var(--cyan);
+  }
+</style>

@@ -1,0 +1,262 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+}
+
+const { title, description, slug } = Astro.props;
+
+const CATEGORY_ORDER = ["Getting Started", "Build System", "Running JARVIS", "Reference"] as const;
+
+const allDocs = await getCollection("docs");
+const byCategory = CATEGORY_ORDER.map((category) => ({
+  category,
+  entries: allDocs
+    .filter((d) => d.data.category === category)
+    .sort((a, b) => a.data.order - b.data.order),
+}));
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="section docs-shell-section">
+    <div class="container docs-shell">
+      <aside class="docs-sidebar">
+        {byCategory.map(({ category, entries }) => (
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-heading mono">{category}</span>
+            <ul>
+              {entries.map((entry) => (
+                <li>
+                  <a
+                    href={`/docs/${entry.id}`}
+                    class:list={["docs-sidebar-link", { active: entry.id === slug }]}
+                  >
+                    {entry.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </aside>
+      <article class="docs-prose">
+        <slot />
+      </article>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .docs-shell-section {
+    padding-top: var(--space-2xl);
+    padding-bottom: var(--space-4xl);
+  }
+
+  .docs-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: var(--space-3xl);
+    align-items: start;
+  }
+
+  .docs-sidebar {
+    position: sticky;
+    top: calc(var(--nav-height) + var(--space-xl));
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .docs-sidebar-group ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .docs-sidebar-heading {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--cyan);
+    margin-bottom: var(--space-sm);
+  }
+
+  .docs-sidebar-link {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 0.4em 0.7em;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+  }
+
+  .docs-sidebar-link:hover {
+    color: var(--cyan);
+    background: #00c8ff08;
+  }
+
+  .docs-sidebar-link.active {
+    color: var(--cyan);
+    background: #00c8ff0a;
+    border-left-color: var(--cyan);
+  }
+
+  @media (max-width: 900px) {
+    .docs-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .docs-sidebar {
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+  /* --- Rendered Markdown --- */
+  .docs-prose {
+    max-width: 760px;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+  }
+
+  .docs-prose :global(h1) {
+    font-size: 1.9rem;
+    margin-bottom: var(--space-lg);
+  }
+
+  .docs-prose :global(h2) {
+    font-size: 1.35rem;
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-md);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .docs-prose :global(h2:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .docs-prose :global(h3) {
+    font-size: 1.1rem;
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-sm);
+  }
+
+  .docs-prose :global(p) {
+    margin-bottom: var(--space-md);
+    color: var(--text-secondary);
+  }
+
+  .docs-prose :global(p strong) {
+    color: var(--text-primary);
+  }
+
+  .docs-prose :global(ul),
+  .docs-prose :global(ol) {
+    margin: 0 0 var(--space-md) var(--space-xl);
+    color: var(--text-secondary);
+  }
+
+  .docs-prose :global(li) {
+    margin-bottom: var(--space-xs);
+  }
+
+  .docs-prose :global(a) {
+    color: var(--cyan);
+    text-decoration: underline;
+    text-decoration-color: var(--border-glow);
+    text-underline-offset: 2px;
+  }
+
+  .docs-prose :global(a:hover) {
+    text-decoration-color: var(--cyan);
+  }
+
+  .docs-prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.4em;
+    color: var(--cyan);
+  }
+
+  .docs-prose :global(pre) {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: var(--space-md);
+    overflow-x: auto;
+    margin-bottom: var(--space-lg);
+  }
+
+  .docs-prose :global(pre code) {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .docs-prose :global(blockquote) {
+    border-left: 3px solid var(--gold);
+    background: #f0a5000a;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: 0 4px 4px 0;
+    margin-bottom: var(--space-lg);
+    color: var(--text-secondary);
+  }
+
+  .docs-prose :global(blockquote p) {
+    margin-bottom: 0;
+  }
+
+  .docs-prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-lg);
+    font-size: 0.85rem;
+  }
+
+  .docs-prose :global(th),
+  .docs-prose :global(td) {
+    border: 1px solid var(--border);
+    padding: 0.6em 0.8em;
+    text-align: left;
+  }
+
+  .docs-prose :global(th) {
+    background: var(--bg-card);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .docs-prose :global(td) {
+    color: var(--text-secondary);
+  }
+
+  .docs-prose :global(hr) {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: var(--space-2xl) 0;
+  }
+</style>
