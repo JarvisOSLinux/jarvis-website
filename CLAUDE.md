@@ -22,9 +22,11 @@ preset, so run `npx astro check` if you want type diagnostics — it isn't wired
 
 ## Architecture
 - **Astro** static site (`output: "static"` in `astro.config.mjs`), custom domain `jarvisoslinux.org`.
-- Every route is a single flat file directly under `src/pages/*.astro` — no nested routing, no
-  `src/content/` collections. `/docs` build-script data and other page content is written inline in
-  the `.astro` frontmatter, not pulled from Markdown.
+- Top-level routes are flat files under `src/pages/*.astro`. The `/docs` section is the exception:
+  docs pages are Markdown in `src/content/docs/` (a content collection defined in
+  `src/content.config.ts` with title/description/category/order frontmatter), rendered through
+  `src/pages/docs/[...slug].astro` + `src/layouts/DocsLayout.astro`, with `src/pages/docs/index.astro`
+  as the section landing page.
 - Shared chrome: `src/layouts/BaseLayout.astro` (head/meta/OG/JSON-LD + `Nav`/`Footer`) wraps every
   page via `<slot />`; page-specific `<script slot="head" type="application/ld+json">` adds per-page
   schema.org JSON-LD.
