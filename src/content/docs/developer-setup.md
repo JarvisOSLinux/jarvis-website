@@ -11,8 +11,9 @@ page covers how to get the full stack working correctly.
 ## Prerequisites
 
 - JARVIS OS installed from the live ISO (or kernel + daemon installed via `--host-install` + `--overlay`)
-- Ollama running (`systemctl status ollama`)
-- At least one model pulled: `ollama list`
+- For the default local-inference path: Ollama running (`systemctl status ollama`) with at least
+  one model pulled (`ollama list`). Remote Ollama instances and OpenAI-compatible APIs also work —
+  see step 2.
 
 ## 1. Verify the kernel module loads at boot
 
@@ -35,20 +36,35 @@ sudo systemctl restart systemd-modules-load.service
 
 `modprobe` resolves the `dibs` dependency automatically — no separate entry needed.
 
-## 2. Configure the LLM model
+## 2. Configure an LLM provider
 
-The JARVIS service and CLI both read `/etc/jarvis/jarvis.conf`:
+Provider and model configuration lives in a provider pool (`providers.json`), not in
+`jarvis.conf`. The pool is a priority-ordered failover list: the daemon tries providers in
+order until one responds. Entries can be local or remote Ollama instances, or any
+OpenAI-compatible API. Without at least one provider configured, `jarvis`, `jarvis run`,
+and `jarvis chat` refuse to start with `Error: No LLM configured.`
+
+Add a local Ollama provider (the daemon reads `/etc/jarvis/providers.json` because the
+systemd unit sets `JARVIS_CONFIG_DIR=/etc/jarvis`):
 
 ```bash
 ollama list                    # Find installed models
-sudo nano /etc/jarvis/jarvis.conf
+sudo JARVIS_CONFIG_DIR=/etc/jarvis jarvis providers add --type ollama --model qwen3:14b
 ```
 
-Key fields:
+Remote Ollama instances and OpenAI-compatible APIs are added the same way, and
+`jarvis providers move` reorders the failover priority:
+
+```bash
+jarvis providers add --type api --model <model> --url <api-url> --key <api-key>
+jarvis providers move <name> 1     # Make <name> the first provider tried
+```
+
+The pool can also be managed interactively from the TUI's Settings modal (`F2`, Providers tab).
+
+`/etc/jarvis/jarvis.conf` still holds non-provider settings:
 
 ```ini
-LLM_MODEL=qwen3:14b          # Match an ollama list entry exactly
-LLM_URL=http://localhost:11434
 OUTPUT_MODE=text              # Use "text" if no working audio device
 LLM_AUTO_PULL=false           # Set true to auto-pull missing models
 ```
@@ -57,7 +73,7 @@ Apply to the running service:
 
 ```bash
 sudo systemctl restart jarvis.service
-jarvis model                  # Should echo the model name
+jarvis providers              # Pool should list your model at position [1]
 ```
 
 ## 3. Run the TUI
@@ -74,11 +90,16 @@ jarvis tui
 | Key | Action |
 |-----|--------|
 | `Ctrl+N` | New session |
+| `Ctrl+D` | Delete selected session |
 | `Ctrl+Q` | Quit |
 | `Ctrl+L` | Focus chat log (scroll with arrows/PgUp) |
 | `Ctrl+I` | Focus input |
 | `F1` | Help / keybinding reference |
+| `F2` | Settings (Providers tab: add/edit LLM providers) |
 | `Enter` | Submit message |
+
+Two unlisted bindings also exist: `Ctrl+Shift+C` clears the chat log and `Ctrl+Shift+E`
+exports the transcript.
 
 ## 4. Send messages to the running daemon
 
@@ -97,7 +118,7 @@ jarvis chat
 ls /dev/jarvis && echo "kernel driver OK"
 systemctl is-active jarvis.service
 curl -s http://localhost:11434/api/tags | python3 -m json.tool | grep name
-jarvis model
+jarvis providers               # Pool should list your model at position [1]
 jarvis ask "say hello"
 ```
 
@@ -108,7 +129,8 @@ jarvis ask "say hello"
 | `/usr/local/bin/jarvis` | Shell entry point (wraps `/opt/jarvis-env/bin/jarvis`) |
 | `/opt/jarvis-env/` | Python venv with JARVIS and all dependencies |
 | `/usr/lib/jarvis/` | JARVIS Python package source |
-| `/etc/jarvis/jarvis.conf` | System-wide config (model, URLs, modes) |
+| `/etc/jarvis/jarvis.conf` | System-wide config (output mode, auto-pull, sockets — not model/provider settings) |
+| `/etc/jarvis/providers.json` | LLM provider pool (priority-ordered failover list; managed via `jarvis providers`) |
 | `/usr/lib/jarvis/.env` | Fallback config when `JARVIS_CONFIG_DIR` is unset |
 | `/var/lib/jarvis/` | Runtime data (models dir, secondary venv) |
 | `/run/jarvis/input.sock` | Unix socket — `jarvis send` writes here |
@@ -130,3 +152,18 @@ The systemd unit sets `JARVIS_CONFIG_DIR=/etc/jarvis` via `Environment=`. The
 `/usr/local/bin/jarvis` wrapper sets it the same way so CLI and daemon always agree.
 
 Running into errors on any of these steps? See [Troubleshooting](/docs/troubleshooting).
+
+## Changelog — corrected claims
+
+*2026-07-22:*
+
+- `LLM_MODEL`/`LLM_URL` in `jarvis.conf` → provider pool in `providers.json`, managed via
+  `jarvis providers add/edit/move/remove` or the TUI Settings modal; nothing in the daemon
+  reads those legacy keys (code: `jarvis/config.py`, `jarvis/core/component_factory.py`).
+- `jarvis model` verification steps → `jarvis providers`; the `model` command was removed
+  and now exits with an error pointing at the provider pool (code: `jarvis/cli.py`).
+- Ollama-only setup framing → priority-ordered failover pool that also accepts remote
+  Ollama instances and OpenAI-compatible APIs; added the missing provider-creation step,
+  without which the daemon, `jarvis run`, and `jarvis chat` refuse to start.
+- TUI key table: added visible `Ctrl+D` (delete session) and `F2` (Settings/Providers)
+  bindings, plus the hidden clear/export shortcuts (code: `jarvis/tui/app.py`).
