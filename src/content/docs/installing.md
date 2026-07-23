@@ -6,7 +6,9 @@ order: 2
 ---
 
 The fastest way to run JARVIS OS is the pre-built ISO from the [Download page](/download), which
-always shows the latest GitHub release along with its SHA-512 checksum.
+always shows the latest GitHub release — including its SHA-512 checksum whenever the release
+publishes one (as a `.sha512`/`SHA512SUMS` asset or in the release notes). Verify the ISO against
+it before installing.
 
 ## 1. Boot from USB
 
@@ -19,15 +21,16 @@ sudo dd if=jarvisos-*.iso of=/dev/sdX bs=4M status=progress conv=fsync
 
 ## 2. Live environment
 
-The live session gives you a fully functional JARVIS OS with KDE Plasma 6. Test the AI features,
-explore the system, and run the `jarvis` CLI before committing to an install.
+The live ISO boots to a text console: root auto-login on TTY1, where the installer launches
+automatically. No display manager runs in the live environment — KDE Plasma 6 comes up on the
+installed system, not the live session.
 
 ## 3. Install to disk
 
-Launch the Calamares installer from the desktop for a guided installation to your hard drive —
-automatic partitioning, user setup, and bootloader configuration included.
+The `jarvis-install` TUI installer (bash + dialog) launches automatically on TTY1 and walks you
+through a guided installation — partitioning, user setup, and bootloader configuration included.
 
-> Calamares installs but post-install configuration is still being stabilized — see
+> The installer works but post-install configuration is still being stabilized — see
 > [Troubleshooting](/docs/troubleshooting) if something doesn't come up correctly after first boot.
 
 ## 4. Virtual machine
@@ -41,5 +44,20 @@ qemu-system-x86_64 -m 4G -smp 4 -cdrom jarvisos-*.iso
 
 ## Prefer to build it yourself?
 
-See [The Seven-Script Build Pipeline](/docs/build-pipeline) to produce your own ISO from source
+See [The Build Pipeline](/docs/build-pipeline) to produce your own ISO from source
 instead of using the pre-built release.
+
+## Changelog — corrected claims
+
+*2026-07-22:*
+
+- Download-page checksum claim corrected: the page shows the latest GitHub release but does not
+  display a SHA-512 checksum (the checksum block in `src/pages/download.astro` is hidden and never
+  populated by `fetchRelease()`); readers are now directed to the checksum published with the
+  release on GitHub.
+- "The Seven-Script Build Pipeline" link retitled to "The Build Pipeline" to match the target
+  page's actual title and its nine-script table (which includes `03b-build-kernel.sh`).
+- Installer and live-environment sections corrected: Calamares was removed from the build — the
+  live ISO boots to root auto-login on TTY1 where the `jarvis-install` TUI installer launches
+  automatically (no live desktop session; Plasma runs on the installed system). See
+  `iso-build-scripts/05-bake-installer.sh` in the `jarvisos` repo.
