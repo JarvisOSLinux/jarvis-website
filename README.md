@@ -17,7 +17,7 @@ This site is built with [Astro](https://astro.build) and deployed to a VPS at `j
 | Route | Description |
 |---|---|
 | `/` | Hero, features overview, architecture diagram, download CTA |
-| `/download` | Latest ISO release and install instructions (SHA-512 checksums are published with each GitHub release) |
+| `/download` | Latest ISO release, its SHA-512 checksum (read from the release's `.sha512`/`SHA512SUMS` asset or notes), and install instructions |
 | `/subsystems` | Component breakdown with links to each repo |
 | `/research` | Threat taxonomy, SURCA poster, methodology |
 | `/docs` | Getting started, build system walkthrough |

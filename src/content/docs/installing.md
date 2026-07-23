@@ -6,8 +6,9 @@ order: 2
 ---
 
 The fastest way to run JARVIS OS is the pre-built ISO from the [Download page](/download), which
-always shows the latest GitHub release. Verify the ISO against the SHA-512 checksum published with
-the release on GitHub.
+always shows the latest GitHub release — including its SHA-512 checksum whenever the release
+publishes one (as a `.sha512`/`SHA512SUMS` asset or in the release notes). Verify the ISO against
+it before installing.
 
 ## 1. Boot from USB
 

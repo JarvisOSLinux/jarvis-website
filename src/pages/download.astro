@@ -223,6 +223,9 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
         rlBtn.href = data.html_url;
         rlBtn.style.display = "inline-flex";
       }
+
+      // Fire-and-forget: a checksum failure must never break the release UI
+      loadChecksum(data, iso?.name ?? null);
     } catch {
       const tagEl = document.getElementById("release-tag");
       const bodyEl = document.getElementById("release-body");
@@ -230,6 +233,51 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
       if (bodyEl)
         bodyEl.innerHTML =
           'Check <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a> directly.';
+    }
+  }
+
+  // Populate #checksum-block from the release: prefer a dedicated checksum
+  // asset (<name>.sha512 / SHA512SUMS*), fall back to a 128-hex digest in the
+  // release notes. Leaves the block hidden when neither exists. Never throws.
+  async function loadChecksum(data: any, isoName: string | null) {
+    try {
+      const block = document.getElementById("checksum-block");
+      const valueEl = document.getElementById("checksum-value");
+      if (!block || !valueEl) return;
+
+      const SHA512_RE = /\b[0-9a-fA-F]{128}\b/;
+      const show = (hex: string) => {
+        valueEl.textContent = hex;
+        block.style.display = "block";
+      };
+
+      const sumAsset = data.assets?.find(
+        (a: any) =>
+          a.name.toLowerCase().endsWith(".sha512") ||
+          a.name.toUpperCase().startsWith("SHA512SUMS")
+      );
+      if (sumAsset) {
+        try {
+          const res = await fetch(sumAsset.browser_download_url);
+          if (res.ok) {
+            const lines = (await res.text()).trim().split("\n");
+            const line =
+              (isoName && lines.find((l) => l.includes(isoName))) || lines[0];
+            const hex = line?.match(SHA512_RE)?.[0];
+            if (hex) {
+              show(hex);
+              return;
+            }
+          }
+        } catch {
+          /* fall through to release-body scan */
+        }
+      }
+
+      const bodyHex = data.body?.match(SHA512_RE)?.[0];
+      if (bodyHex) show(bodyHex);
+    } catch {
+      /* checksum display is best-effort; block stays hidden */
     }
   }
 
