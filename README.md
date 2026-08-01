@@ -6,7 +6,7 @@ The official website for [JARVIS OS](https://jarvisoslinux.org), an Arch Linux-b
 
 JARVIS OS is a research platform studying the security implications of granting LLMs OS-level privileges. It combines Arch Linux, KDE Plasma 6, Ollama for local LLM inference by default (the daemon is model-agnostic — OpenAI-compatible API providers can join the automatic failover pool), and an MCP (Model Context Protocol) orchestration layer that lets the AI autonomously manage system tools with sudo access.
 
-The project's academic contribution is a seven-threat taxonomy derived from hands-on experience building and operating the system — including two novel context findings: **bloated context** (context-window saturation crowds out previously stated security constraints) and **forgetful context** (the daemon never durably stores constraints in the first place, so a context refresh loses them structurally — the first identification of this as a discrete security threat).
+The project's academic contribution is a six-threat taxonomy derived from hands-on experience building and operating the system — including the novel finding of **bloated context**: security constraints do not survive the context lifecycle, whether crowded out of a saturated context window or never durably stored at all, so a context refresh loses them structurally. This is the first identification of context-lifecycle failure as a discrete security threat rather than a reliability quirk.
 
 ## Website
 
@@ -50,5 +50,7 @@ npm run preview    # preview production build
 See [LICENSE](LICENSE) for details.
 
 ## Changelog — corrected claims
+
+*2026-08-01:* taxonomy updated seven → six — forgetful context merged back into bloated context. The two were presentations of one failure: the daemon's two-tier context manager never executes, so a single config flag decides whether constraints are crowded out of a growing history or cleared away with it. The novelty claim is retained and re-scoped to context-lifecycle failure (saturation and non-persistence).
 
 *2026-07-22:* deployment corrected to VPS rsync via `./deploy` (not GitHub Pages); site link fixed to jarvisoslinux.org; GitHub API usage scoped to releases + contributors (no repo stats) and the contact-form handler noted; download-page checksum claim corrected; model posture updated to local-first/model-agnostic; taxonomy updated to seven threats (Bloated + Forgetful Context); jarvisos-app and linux-jarvisos added to the repo table.

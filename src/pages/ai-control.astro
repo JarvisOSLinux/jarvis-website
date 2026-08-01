@@ -83,11 +83,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <h3>Bloated Context</h3>
           <p>
             The AI doesn't disobey security constraints. It forgets them. Context window
-            saturation silently drops earlier instructions. No warning. No error. The
-            boundaries you set vanish — and the agent keeps operating.
+            saturation silently drops earlier instructions, and nothing durably stored them,
+            so a refresh loses them outright. No warning. No error. The boundaries you set
+            vanish — and the agent keeps operating.
           </p>
           <span class="tag tag-critical" style="margin-top: var(--space-md); display: inline-block;">
-            Context Saturation = Security Threat
+            Context Lifecycle = Security Threat
           </span>
         </div>
 

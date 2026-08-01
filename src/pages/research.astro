@@ -8,7 +8,7 @@ const scholarlySchema = JSON.stringify({
   headline:
     "Security Threats in AI-Native Operating Systems: An Empirical Study Using Privilege-Escalated LLM Agents",
   description:
-    "First empirical threat taxonomy for AI-native operating systems, identifying seven threat classes including Bloated Context and Forgetful Context — the first identification of context window saturation, and the absence of persistent security constraints, as discrete security threats.",
+    "First empirical threat taxonomy for AI-native operating systems, identifying six threat classes including Bloated Context — the first identification of context-lifecycle failure, both context window saturation and the absence of persistent security constraints, as a discrete security threat.",
   author: [
     {
       "@type": "Person",
@@ -87,23 +87,17 @@ const threats = [
   {
     title: "Bloated Context",
     severity: "critical" as const,
+    novel: true,
     description:
-      "The AI doesn't disobey security constraints — it forgets them. Context window saturation silently drops earlier instructions. No warning, no error. The boundaries you set vanish, and the agent keeps operating as if they never existed.",
-    mitigation: "Partial — dispatch rolling signal window (last 20 entries) + contextor retention-based pruning. Persistent preservation of security constraints across context refreshes is not yet implemented; see Forgetful Context.",
-  },
-  {
-    title: "Forgetful Context",
-    severity: "novel" as const,
-    description:
-      "Distinct from Bloated Context: the daemon has no persistent record of security constraints in the first place. There is nothing to be crowded out — the restriction was never durably stored, so a context refresh loses it structurally, not incidentally. No prior literature identifies this as a discrete threat.",
-    mitigation: "Not yet mitigated — highest-priority open item. Planned: a persistent constraint register in the daemon that re-injects active security rules into every LLM prompt, independent of context window state.",
+      "The AI doesn't disobey security constraints — it forgets them. Context window saturation silently drops earlier instructions, and nothing durably stored them in the first place, so a context refresh loses them structurally rather than incidentally. No warning, no error. The boundaries you set vanish, and the agent keeps operating as if they never existed. No prior literature identifies context-lifecycle failure as a discrete threat.",
+    mitigation: "Partial — dispatch rolling signal window (last 20 entries) + contextor retention-based pruning bound the saturation half. Non-persistence is unmitigated and the highest-priority open item. Planned: a persistent constraint register in the daemon, enforced at the dispatch gate, that re-injects active security rules into every LLM prompt independent of context window state.",
   },
 ];
 ---
 
 <BaseLayout
   title="LLM-OS Security Research"
-  description="Empirical threat taxonomy for AI-native operating systems — prompt injection, bloated context, forgetful context, unauthorized sudo via MCP, and privilege escalation. Research by Yakup Atahanov & Toufic Majdaleni, WSU Everett."
+  description="Empirical threat taxonomy for AI-native operating systems — prompt injection, bloated context, unauthorized sudo via MCP, and privilege escalation. Research by Yakup Atahanov & Toufic Majdaleni, WSU Everett."
 >
   <script slot="head" type="application/ld+json" set:html={scholarlySchema} />
   <section class="section">
@@ -185,7 +179,8 @@ const threats = [
     <div class="container">
       <div class="finding-detail">
         <span class="tag tag-critical">Bloated Context</span>
-        <h2 style="margin-top: var(--space-md);">Context Saturation as a Security Threat</h2>
+        <span class="tag tag-novel" style="margin-left: var(--space-sm);">Novel</span>
+        <h2 style="margin-top: var(--space-md);">Context Lifecycle Failure as a Security Threat</h2>
         <p style="margin-top: var(--space-md);">
           Unlike the other threats — which relate to tool misuse or privilege escalation —
           Bloated Context is a property of how LLMs process information.
@@ -196,18 +191,25 @@ const threats = [
           that the constraint was lost. The model proceeds as if the restriction was never given.
         </p>
         <p style="margin-top: var(--space-md);">
-          This is the first identification of context window saturation as a
-          <strong>discrete security threat</strong> rather than a reliability problem.
-          It has profound implications for any system that relies on conversational context
-          to enforce security policy.
+          The same failure has a second presentation. Nothing durably stores those constraints
+          in the first place, so a context refresh does not merely crowd them out — it loses
+          them outright, structurally rather than incidentally. Both presentations trace to a
+          single unreachable code path in the daemon's context manager: the trimmed hot window
+          never trims, and the rolling summary that was supposed to carry constraints forward is
+          never populated. Which face you get is decided by one configuration flag — leave
+          history accumulating and constraints are crowded out; clear it between responses and
+          they are gone. One mechanism, two symptoms, so they are one threat rather than two.
         </p>
         <p style="margin-top: var(--space-md);">
-          Bloated Context is now distinguished from a related, more severe finding:
-          <strong>Forgetful Context</strong>. Bloated Context describes constraints being
-          crowded out of a full window — mitigated today by dispatch's rolling window and
-          contextor's pruning. Forgetful Context describes the deeper problem: the daemon
-          has no persistent constraint register at all, so there is nothing durable to
-          preserve in the first place. It remains unmitigated.
+          This is the first identification of context-lifecycle failure — saturation and
+          non-persistence alike — as a <strong>discrete security threat</strong> rather than a
+          reliability problem. It has profound implications for any system that relies on
+          conversational context to enforce security policy.
+        </p>
+        <p style="margin-top: var(--space-md);">
+          The saturation half is partially mitigated today by dispatch's rolling window and
+          contextor's pruning. The non-persistence half is unmitigated: there is no persistent
+          constraint register in the daemon, and building one is the highest-priority open item.
         </p>
       </div>
     </div>
@@ -249,16 +251,11 @@ const threats = [
           <h3 class="text-cyan">Bloated Context Mitigation</h3>
           <p>
             dispatch's bounded rolling signal window (last 20 entries per wakeup) + contextor's
-            retention-based pruning. Partial — persistent preservation of security-critical
-            constraints across context refreshes is not yet implemented.
-          </p>
-        </div>
-        <div class="card">
-          <h3 class="text-cyan">Forgetful Context — Planned Mitigation</h3>
-          <p>
-            Not yet implemented. Planned: a persistent constraint register in the JARVIS daemon
-            that re-injects active security rules into every LLM prompt regardless of context
-            window state. The highest-priority open item on the roadmap.
+            retention-based pruning bound the saturation half. Partial — persistent preservation
+            of security-critical constraints across context refreshes is not yet implemented.
+            Planned: a persistent constraint register in the JARVIS daemon, enforced at the
+            dispatch gate, that re-injects active security rules into every LLM prompt regardless
+            of context window state. The highest-priority open item on the roadmap.
           </p>
         </div>
       </div>
@@ -274,9 +271,9 @@ const threats = [
           <span class="contribution-num mono text-cyan">01</span>
           <p>
             A taxonomy of empirically-identified security threats specific to privilege-escalated
-            LLM agents — including Bloated Context, the first identification of context window
-            saturation as a discrete security threat, and Forgetful Context, the absence of any
-            persistent security-constraint register in the daemon.
+            LLM agents — including Bloated Context, the first identification of context-lifecycle
+            failure as a discrete security threat: security constraints crowded out of a saturated
+            window, and never durably stored, so a context refresh loses them structurally.
           </p>
         </div>
         <div class="contribution-item">
