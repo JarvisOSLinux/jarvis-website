@@ -117,12 +117,16 @@ or deceptive servers are filtered before they are discoverable by tool search.
 dispatch's bounded rolling signal window (last 20 entries per wakeup) +
 contextor's retention-based pruning; the daemon's context manager preserves the
 system prompt across refreshes. Its two-tier design — a trimmed hot window plus
-a rolling summary carrying older turns forward — does **not** execute: the trim
-path is unreachable, so the hot window never trims and the rolling summary is
-never populated. Persistent per-constraint preservation is designed but **not
-implemented** — that gap is the non-persistence half of threat #6, and the
-planned mitigation is a persistent constraint register in the daemon, enforced
-at the dispatch gate.
+a rolling summary carrying older turns forward — originally did **not** execute
+(the trim fired only on a mode switch that never occurred, so history grew
+unbounded and the summary stayed empty); it now runs on every ROOT turn, so the
+window is enforced and evicted exchanges are compressed rather than dropped.
+That bounds the **saturation** half. Persistent per-constraint preservation is
+designed but **not implemented** — a rolling summary is lossy compression chosen
+by a model, not a durable store, and nothing persists it across a restart, so a
+constraint stated once can still be summarized away. That gap is the
+non-persistence half of threat #6, and the planned mitigation is a persistent
+constraint register in the daemon, enforced at the dispatch gate.
 
 ---
 
@@ -190,6 +194,19 @@ at the dispatch gate.
 ---
 
 ## Changelog — corrected claims
+
+*2026-08-01 (later):* the dead path described in the entry below has been
+repaired for the saturation half (Project-JARVIS#213). `LLM.ask()` now applies
+the hot window on every ROOT turn and compresses evicted exchanges into the
+rolling summary, instead of relying on a mode switch that never fired. The
+Bloated Context Mitigation section and the `/research` narrative are updated to
+put the *defect* in the past tense while keeping the merge — that one mechanism
+produced both faces is the empirical basis for treating them as one threat, and
+that remains true of the system as observed. Threat 6 stays **partial**: the
+non-persistence half is untouched and still open, because a rolling summary is
+lossy compression chosen by a model rather than a durable constraint store, and
+nothing persists it across a restart. The persistent constraint register
+enforced at the dispatch gate remains the planned mitigation.
 
 *2026-08-01:* taxonomy updated seven → six — Forgetful Context (the 2026-07
 threat 7) merged back into Bloated Context (threat 6). Reading the daemon

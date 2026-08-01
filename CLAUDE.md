@@ -60,7 +60,7 @@ again, since it has moved before — six → seven in 2026-07, seven → six in 
 | 3 | Misleading MCP Server Usage | Registry vetting + structured tool schema |
 | 4 | Unauthorized Sudo Requests via MCP | TLA system + PolicyKit enforcement |
 | 5 | Sudo Capability Exploitation | TLA + goal-scoped confirmation |
-| 6 | Bloated Context (novel) | Partial — dispatch rolling window + contextor pruning bound the saturation half; the non-persistence half is open, with a persistent constraint register in the daemon (enforced at the dispatch gate) as the planned mitigation and the highest-priority open item |
+| 6 | Bloated Context (novel) | Partial — dispatch rolling window + contextor pruning + the daemon's two-tier context manager (applied per ROOT turn since Project-JARVIS#213) bound the saturation half; the non-persistence half is open, with a persistent constraint register in the daemon (enforced at the dispatch gate) as the planned mitigation and the highest-priority open item |
 
 Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-enabled.
 
@@ -70,9 +70,13 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
   structurally. It carries the novelty claim: first identification of context-lifecycle failure as a
   security threat rather than a reliability quirk.
 - **"Forgetful Context" is not a separate threat** — it was split out in 2026-07 and merged back in
-  2026-08. The daemon's two-tier context manager (hot window + rolling summary) never executes, so
-  one dead code path produces both presentations and a single config flag
-  (`RESET_HISTORY_AFTER_RESPONSE`) decides which one you see. Do not re-split the entry.
+  2026-08. The merge rests on one observed mechanism: the daemon's two-tier context manager (hot
+  window + rolling summary) never executed, so one dead code path produced both presentations and a
+  single config flag (`RESET_HISTORY_AFTER_RESPONSE`) decided which one you saw. Do not re-split the
+  entry. That path was repaired in 2026-08 (Project-JARVIS#213) — the window is now applied on every
+  ROOT turn and evicted exchanges are compressed — so write the *defect* in the past tense while
+  keeping the merge. The non-persistence half is still open: a lossy rolling summary is not a durable
+  constraint store and does not survive a restart.
 - "Misinterpreted MCP Keyword Search" is subsumed by "Misleading MCP Server Usage."
 - "Unintended File Modification/Deletion" is a consequence of threats 4+5, not a root cause.
 - The academic contribution is the **platform + taxonomy + mitigations**, not just the software.
