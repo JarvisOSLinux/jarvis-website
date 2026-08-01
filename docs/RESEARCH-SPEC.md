@@ -5,7 +5,8 @@ on the JarvisOS website. All pages that reference the research (homepage,
 /research, /AI-control, /freedom-control) must align with this spec.
 
 Last updated from: the pre-publication manuscript, June 2026; taxonomy updated
-to the seven-threat split, July 2026. Per-threat implementation status is
+to the seven-threat split, July 2026; Forgetful Context merged back into
+Bloated Context, August 2026 (six threats). Per-threat implementation status is
 canonical in `Project-JARVIS/docs/SECURITY-ARCHITECTURE.md` upstream — where
 this spec and that table disagree, the upstream table wins.
 
@@ -34,10 +35,11 @@ threats at the OS level, the findings generalize to every narrower context.
 
 ---
 
-## The Seven-Threat Taxonomy
+## The Six-Threat Taxonomy
 
-As of 2026-07 the taxonomy is **seven** empirically-identified threats —
-Bloated Context and Forgetful Context were split into two distinct entries:
+As of 2026-08 the taxonomy is **six** empirically-identified threats —
+Forgetful Context was merged back into Bloated Context, which now covers the
+whole context-lifecycle failure:
 
 | # | Threat | Escalation Stage | Primary Mitigation | Status |
 |---|--------|-----------------|-------------------|--------|
@@ -46,18 +48,29 @@ Bloated Context and Forgetful Context were split into two distinct entries:
 | 3 | Misleading MCP Server Usage | User / Sudo / Web | Registry vetting + structured tool schema | partial |
 | 4 | Unauthorized Sudo Requests via MCP | Sudo / Web | TLA system + PolicyKit enforcement | implemented |
 | 5 | Sudo Capability Exploitation | Sudo / Web | TLA confirmation gate | implemented |
-| 6 | Bloated Context | User / Sudo / Web | dispatch rolling window + contextor pruning | partial |
-| 7 | Forgetful Context (novel) | User / Sudo / Web | Not yet mitigated — persistent constraint register planned | open |
+| 6 | Bloated Context (novel) | User / Sudo / Web | dispatch rolling window + contextor pruning; persistent constraint register in the daemon, enforced at the dispatch gate, planned | partial — saturation bounded, non-persistence open |
 
 ### Key framing
 
-- **Bloated Context ≠ Forgetful Context.** They are separate, adjacent
-  threats. Bloated Context is security constraints getting crowded out of a
-  saturated context window (partially mitigated). Forgetful Context is the
-  daemon never durably storing constraints in the first place, so a context
-  refresh loses them structurally rather than incidentally — the standout
-  novel finding, and the first identification of this as a security threat
-  rather than a reliability quirk.
+- **Bloated Context covers both faces of the context-lifecycle failure**:
+  constraints crowded out of a saturated window, and constraints never
+  durably stored, so a context refresh loses them structurally rather than
+  incidentally. It is the standout novel finding — the first identification
+  of context-lifecycle failure as a security threat rather than a reliability
+  quirk.
+- "Forgetful Context" is not a separate threat — it was split out as threat 7
+  in 2026-07 and merged back into "Bloated Context" in 2026-08, because the
+  two are one failure with two presentations. The daemon's two-tier context
+  manager (hot window + rolling summary) never executes: `_trim_root_history()`
+  is reachable only from `switch_mode()`'s root branch, which early-returns
+  because the LLM never leaves root mode — the only mode switch away from root
+  lives in a function with no callers. One dead path therefore produces both
+  presentations, selected by a single config flag: with
+  `RESET_HISTORY_AFTER_RESPONSE=false` (the default) history grows without
+  bound and constraints are crowded out; set it `true` and history is cleared
+  while the summary that was supposed to carry constraints forward is empty,
+  so constraints are lost outright. Splitting them implied two distinct
+  mechanisms; there is one.
 - "Misinterpreted MCP Keyword Search" is not a separate threat — it is
   subsumed by "Misleading MCP Server Usage" and addressed by dmcp's
   embedding-based semantic tool search (cosine similarity over
@@ -103,9 +116,13 @@ or deceptive servers are filtered before they are discoverable by tool search.
 ### Bloated Context Mitigation
 dispatch's bounded rolling signal window (last 20 entries per wakeup) +
 contextor's retention-based pruning; the daemon's context manager preserves the
-system prompt and a rolling summary across refreshes. Persistent per-constraint
-preservation is designed but **not implemented** — that gap is exactly
-Forgetful Context (threat #7).
+system prompt across refreshes. Its two-tier design — a trimmed hot window plus
+a rolling summary carrying older turns forward — does **not** execute: the trim
+path is unreachable, so the hot window never trims and the rolling summary is
+never populated. Persistent per-constraint preservation is designed but **not
+implemented** — that gap is the non-persistence half of threat #6, and the
+planned mitigation is a persistent constraint register in the daemon, enforced
+at the dispatch gate.
 
 ---
 
@@ -119,10 +136,10 @@ Forgetful Context (threat #7).
 
 ## Four Contributions
 
-1. Seven-threat taxonomy for privilege-escalated LLM agents — including
-   Bloated Context (first identification of context saturation as a security
-   threat) and Forgetful Context (first identification of absent persistent
-   constraints as a security threat).
+1. Six-threat taxonomy for privilege-escalated LLM agents — including Bloated
+   Context, the first identification of context-lifecycle failure (constraints
+   crowded out of a saturated window, and constraints never durably stored) as
+   a security threat rather than a reliability quirk.
 2. Architectural mitigations for each threat class, implemented or partially
    implemented in JarvisOS (per-threat status is canonical in
    `Project-JARVIS/docs/SECURITY-ARCHITECTURE.md`).
@@ -157,11 +174,13 @@ Forgetful Context (threat #7).
 
 - The research contribution is the **platform + taxonomy + mitigations**, not
   just the software.
-- The taxonomy is **seven** threats. Do not collapse Bloated Context and
-  Forgetful Context back into one entry.
-- Forgetful Context is the standout novel finding; Bloated Context remains a
-  discrete threat in its own right — lead with whichever the page is about,
-  but never conflate them.
+- The taxonomy is **six** threats. Bloated Context is one entry covering both
+  faces of the context-lifecycle failure — do not re-split it into Bloated
+  Context and Forgetful Context.
+- Bloated Context is the standout novel finding, and the novelty claim is
+  about the *lifecycle*: constraints do not survive it, whether they are
+  crowded out of a saturated window or were never durably stored. Copy may
+  lead with either presentation, but must not present them as two threats.
 - Present-tense mitigation claims must match the canonical status table in
   `Project-JARVIS/docs/SECURITY-ARCHITECTURE.md`.
 - The project is research-first, product-second.
@@ -171,6 +190,22 @@ Forgetful Context (threat #7).
 ---
 
 ## Changelog — corrected claims
+
+*2026-08-01:* taxonomy updated seven → six — Forgetful Context (the 2026-07
+threat 7) merged back into Bloated Context (threat 6). Reading the daemon
+established that the two are one failure with two presentations: the two-tier
+context manager never executes (`_trim_root_history()` is reachable only from
+`switch_mode()`'s root branch, which early-returns because the LLM never leaves
+root mode), so a single config flag decides which face appears —
+`RESET_HISTORY_AFTER_RESPONSE=false` (the default) grows history without bound
+and crowds constraints out, `true` clears history while the summary that should
+have carried constraints forward is empty. One dead code path, one threat. The
+novelty claim is retained and re-scoped to context-lifecycle failure — both
+saturation and non-persistence — as a security threat rather than a reliability
+quirk, and the persistent constraint register becomes a threat-6 mitigation.
+Also corrected here: the Bloated Context Mitigation section no longer claims the
+daemon preserves a rolling summary across refreshes; that mechanism is
+unreachable and the summary is never populated.
 
 *2026-07-22:* taxonomy updated six → seven (Bloated/Forgetful Context split,
 2026-07, matching the live `/research` page, the jarvisos README, and

@@ -27,7 +27,7 @@ members scan a QR code and land on one of these pages.
 2. **User-Controlled Permissions** — AI asks before it acts. Every access is
    explicit, logged, revocable. TLA system enforces this.
 3. **Open Research & Accountability** — threats studied in the open. The
-   seven-threat taxonomy is published. Community audits what you run.
+   six-threat taxonomy is published. Community audits what you run.
 4. **AI Amplifies, Not Replaces** — augments decisions, executes tasks you
    specify, stops when you say stop. Human remains the locus of judgment.
 
@@ -63,14 +63,14 @@ members scan a QR code and land on one of these pages.
 - Tag: ACTIVE THREAT
 - "This is not a hypothetical. These systems are already deployed at scale."
 
-### Content Cards — UPDATE TO MATCH SEVEN-THREAT TAXONOMY
+### Content Cards — UPDATE TO MATCH SIX-THREAT TAXONOMY
 
 Current cards (OUTDATED):
 1. Mass Data Harvesting ← keep, reword
 2. Behavioral Manipulation at Scale ← keep, reword
 3. Opaque Privilege Escalation ← maps to threats 4+5
-4. Forgetful Context ← keep — now Threat 7 in its own right; add a separate
-   Bloated Context card (Threat 6)
+4. Forgetful Context ← fold into a single Bloated Context card (Threat 6),
+   which covers both saturation and non-persistence
 5. Unverified MCP Servers ← maps to threat 1
 6. Regulatory Capture ← keep (social/political framing)
 
@@ -93,15 +93,11 @@ Current cards (OUTDATED):
 
 5. **Bloated Context** — the AI doesn't disobey security constraints. They
    get crowded out. Context window saturation silently drops earlier
-   instructions. This is a security threat, not a reliability problem.
+   instructions — and nothing durably stored them, so a context refresh loses
+   them outright. This is a security threat, not a reliability problem.
    (Threat 6)
 
-6. **Forgetful Context** — worse than forgetting: the constraint was never
-   durably stored. The AI has no persistent record of the rules you set, so
-   a context refresh loses them structurally — nothing needed to go wrong.
-   (Threat 7)
-
-7. **Regulatory Capture** — big tech writes safety frameworks. Compliance
+6. **Regulatory Capture** — big tech writes safety frameworks. Compliance
    costs exclude open alternatives. The future of AI is enclosed behind
    paywalls and terms of service. (Social/political framing)
 
@@ -127,6 +123,17 @@ Current cards (OUTDATED):
 ---
 
 ## Changelog — corrected claims
+
+*2026-08-01:*
+
+- Taxonomy count updated seven → six: Forgetful Context was merged back into
+  Bloated Context (Threat 6), which now covers both faces of the
+  context-lifecycle failure — constraints crowded out of a saturated window,
+  and constraints never durably stored. One dead code path in the daemon's
+  context manager produces both, so the split implied two mechanisms where
+  there is one (see `docs/RESEARCH-SPEC.md`). The /ai-control card list drops
+  the separate Forgetful Context card and folds its substance into the Bloated
+  Context card; Regulatory Capture moves from card 7 to card 6.
 
 *2026-07-22:*
 

@@ -44,13 +44,14 @@ preset, so run `npx astro check` if you want type diagnostics — it isn't wired
   + systemd unit for a contact-form handler — note the `server/` directory this references is not
   present in this repo checkout.
 
-## Research core — seven-threat taxonomy
+## Research core — six-threat taxonomy
 `docs/RESEARCH-SPEC.md` is the single source of truth for all research content on the site;
 `docs/EASTER-EGG-SPEC.md` is the spec for the `/freedom-control` and `/ai-control` pages. Empirically
-identified through building and operating JARVIS OS. **As of 2026-07, this is seven threats** —
-Bloated Context and Forgetful Context were split into two distinct entries; verify against the
-`jarvisos` repo README (canonical status lives in `Project-JARVIS/docs/SECURITY-ARCHITECTURE.md`
-upstream) before changing this count again, since it has moved before.
+identified through building and operating JARVIS OS. **As of 2026-08, this is six threats** —
+Forgetful Context (threat 7 in the 2026-07 split) was merged back into Bloated Context, which now
+covers the whole context-lifecycle failure; verify against the `jarvisos` repo README (canonical
+status lives in `Project-JARVIS/docs/SECURITY-ARCHITECTURE.md` upstream) before changing this count
+again, since it has moved before — six → seven in 2026-07, seven → six in 2026-08.
 
 | # | Threat | Status / Primary Mitigation |
 |---|--------|--------------------|
@@ -59,17 +60,19 @@ upstream) before changing this count again, since it has moved before.
 | 3 | Misleading MCP Server Usage | Registry vetting + structured tool schema |
 | 4 | Unauthorized Sudo Requests via MCP | TLA system + PolicyKit enforcement |
 | 5 | Sudo Capability Exploitation | TLA + goal-scoped confirmation |
-| 6 | Bloated Context | Partial — dispatch rolling window + contextor pruning; persistent constraint preservation across context refreshes not implemented |
-| 7 | Forgetful Context (novel) | Not yet mitigated — no persistent constraint register in the daemon; highest-priority open item |
+| 6 | Bloated Context (novel) | Partial — dispatch rolling window + contextor pruning bound the saturation half; the non-persistence half is open, with a persistent constraint register in the daemon (enforced at the dispatch gate) as the planned mitigation and the highest-priority open item |
 
 Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-enabled.
 
 **Framing rules for copy/content (do not violate):**
-- **Bloated Context** ≠ **Forgetful Context** — they are separate, adjacent threats. Bloated Context
-  is constraints getting crowded out of a full context window (partially mitigated). Forgetful
-  Context is the daemon never durably storing constraints in the first place (unmitigated, the
-  standout novel finding — first identification of this as a security threat rather than a
-  reliability quirk).
+- **Bloated Context covers both faces of the context-lifecycle failure** — constraints crowded out
+  of a full context window, and constraints never durably stored, so a context refresh loses them
+  structurally. It carries the novelty claim: first identification of context-lifecycle failure as a
+  security threat rather than a reliability quirk.
+- **"Forgetful Context" is not a separate threat** — it was split out in 2026-07 and merged back in
+  2026-08. The daemon's two-tier context manager (hot window + rolling summary) never executes, so
+  one dead code path produces both presentations and a single config flag
+  (`RESET_HISTORY_AFTER_RESPONSE`) decides which one you see. Do not re-split the entry.
 - "Misinterpreted MCP Keyword Search" is subsumed by "Misleading MCP Server Usage."
 - "Unintended File Modification/Deletion" is a consequence of threats 4+5, not a root cause.
 - The academic contribution is the **platform + taxonomy + mitigations**, not just the software.

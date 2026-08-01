@@ -93,12 +93,14 @@ const researchSchema = JSON.stringify({
     <div class="container">
       <div class="finding-banner glow-border">
         <span class="tag tag-critical">Critical Threat</span>
+        <span class="tag tag-novel" style="margin-left: var(--space-sm);">Novel</span>
         <h2>Bloated Context</h2>
         <p>
-          Context window saturation silently drops security constraints mid-session.
-          The AI doesn't disobey your rules. It forgets them. This is the first identification
-          of context saturation as a <strong>discrete security threat</strong> rather than a
-          reliability problem.
+          Context window saturation silently drops security constraints mid-session — and
+          nothing durably stores them, so a context refresh loses them outright. The AI
+          doesn't disobey your rules. It forgets them. This is the first identification of
+          context-lifecycle failure as a <strong>discrete security threat</strong> rather
+          than a reliability problem.
         </p>
         <a href="/research#bloated-context" class="btn btn-outline" style="margin-top: var(--space-lg);">
           Learn more &rarr;
@@ -191,11 +193,10 @@ const researchSchema = JSON.stringify({
         </div>
         <div class="threat-row">
           <span>Bloated Context</span>
-          <span class="tag tag-critical">Critical</span>
-        </div>
-        <div class="threat-row">
-          <span>Forgetful Context</span>
-          <span class="tag tag-novel">Novel</span>
+          <span class="threat-row-tags">
+            <span class="tag tag-critical">Critical</span>
+            <span class="tag tag-novel">Novel</span>
+          </span>
         </div>
       </div>
       <a href="/research" class="btn btn-outline" style="margin-top: var(--space-xl);">
@@ -307,6 +308,12 @@ const researchSchema = JSON.stringify({
     font-size: 0.9rem;
     transition: background var(--transition-fast), border-color var(--transition-fast), padding-left var(--transition-base);
     position: relative;
+  }
+
+  .threat-row-tags {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
   }
 
   .threat-row::before {

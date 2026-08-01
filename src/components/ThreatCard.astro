@@ -5,9 +5,10 @@ interface Props {
   description: string;
   mitigation: string;
   index?: number;
+  novel?: boolean;
 }
 
-const { title, severity, description, mitigation, index } = Astro.props;
+const { title, severity, description, mitigation, index, novel } = Astro.props;
 const num = index !== undefined ? String(index + 1).padStart(2, "0") : undefined;
 ---
 
@@ -15,6 +16,7 @@ const num = index !== undefined ? String(index + 1).padStart(2, "0") : undefined
   {num && <span class="threat-num mono" aria-hidden="true">{num}</span>}
   <div class="threat-header">
     <span class:list={["tag", `tag-${severity}`]}>{severity}</span>
+    {novel && severity !== "novel" && <span class="tag tag-novel">novel</span>}
   </div>
   <h3 class="threat-title">{title}</h3>
   <p class="threat-desc">{description}</p>
@@ -59,6 +61,7 @@ const num = index !== undefined ? String(index + 1).padStart(2, "0") : undefined
   .threat-header {
     display: flex;
     align-items: center;
+    gap: var(--space-sm);
     margin-bottom: var(--space-md);
   }
 
