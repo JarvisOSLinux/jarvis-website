@@ -193,12 +193,15 @@ const threats = [
         <p style="margin-top: var(--space-md);">
           The same failure has a second presentation. Nothing durably stores those constraints
           in the first place, so a context refresh does not merely crowd them out — it loses
-          them outright, structurally rather than incidentally. Both presentations trace to a
+          them outright, structurally rather than incidentally. Both presentations traced to a
           single unreachable code path in the daemon's context manager: the trimmed hot window
-          never trims, and the rolling summary that was supposed to carry constraints forward is
-          never populated. Which face you get is decided by one configuration flag — leave
+          never trimmed, and the rolling summary that was supposed to carry constraints forward
+          was never populated. Which face you got was decided by one configuration flag — leave
           history accumulating and constraints are crowded out; clear it between responses and
           they are gone. One mechanism, two symptoms, so they are one threat rather than two.
+          That path has since been repaired: the window is applied on every turn and evicted
+          exchanges are compressed, which bounds the saturation face. The non-persistence face
+          remains open, because a lossy summary is not a durable constraint store.
         </p>
         <p style="margin-top: var(--space-md);">
           This is the first identification of context-lifecycle failure — saturation and
