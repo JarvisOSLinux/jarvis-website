@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project overview
 This is the official website for **JARVIS OS**, an Arch Linux-based AI-native operating system
 built as a research project at **Washington State University (WSU Everett)** by Yakup Atahanov and
-co-author Toufic Majdaleni, under a WSU research grant. The project is presented at
+co-author Toufic Majdalani, under a WSU research grant. The project is presented at
 **SURCA** (Showcase for Undergraduate Research and Creative Activities — 2026, Winner, Gray Grant) and
 is heading toward a full academic paper.
 
