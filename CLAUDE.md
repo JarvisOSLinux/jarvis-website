@@ -95,7 +95,7 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
 Each `/subsystems` card links to a repo under the `JarvisOSLinux` org:
 ```
 github.com/JarvisOSLinux/
-├── jarvisos              ← AI-native distro (Arch base + kernel + 7-script build pipeline)
+├── jarvisos              ← AI-native distro (Arch base + kernel + 9-script build pipeline)
 ├── Project-JARVIS        ← AI assistant daemon (Python, LLM orchestration, TUI)
 ├── dispatch               ← Rust signal-driven parallel task orchestrator
 ├── dmcp                   ← Rust MCP server lifecycle manager (dual-scope: user/system)

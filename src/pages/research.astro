@@ -226,20 +226,24 @@ const threats = [
         <div class="card">
           <h3 class="text-cyan">Cryptographic Boundary Protocol</h3>
           <p>
-            dispatch generates a six-character provenance nonce (Splitmix64) for each completed
-            MCP task. Successful output is stored out-of-band — it never enters the LLM's
-            context unless explicitly retrieved. This structurally separates the instruction
-            plane from the data plane.
+            dispatch generates a 128-bit provenance nonce from the OS CSPRNG (32 hex characters)
+            for each completed MCP task and wraps the tool's output in it. The daemon verifies
+            that tag on every signal it receives and marks any mismatch as UNVERIFIED in-band,
+            so untrusted output cannot impersonate a trusted boundary. Output can additionally
+            be held out of context with <code>defer_output</code> and retrieved on demand. This
+            structurally separates the instruction plane from the data plane.
           </p>
         </div>
         <div class="card">
           <h3 class="text-cyan">TLA (Threat Level Access) System</h3>
           <p>
-            Dynamic, context-aware privilege model: Guest &rarr; User &rarr; Elevated &rarr;
-            Sudo &rarr; Kernel. Enforced by the JARVIS daemon in userspace: every tool invocation
-            is evaluated against the current TLA level, and escalation requires explicit
-            out-of-band user confirmation — it cannot be triggered by model output alone. A
-            kernel-resident policy engine on /dev/jarvis is the OS embodiment's enforcement path.
+            Four-tier threat classification: Safe &rarr; Elevated &rarr; Dangerous &rarr;
+            Forbidden. Enforced by the JARVIS daemon in userspace: every tool invocation is
+            classified from the host's own floor, the server manifest, and a scan of the call's
+            parameters — the strictest of the three wins, so a server cannot under-declare its
+            own threat level. Confirmation requires explicit out-of-band user approval and
+            cannot be triggered by model output alone. A kernel-resident policy engine on
+            /dev/jarvis mirrors these tiers as the OS embodiment's enforcement path.
           </p>
         </div>
         <div class="card">

@@ -36,7 +36,7 @@ npm run preview    # preview production build
 
 | Repo | Description |
 |---|---|
-| [jarvisos](https://github.com/JarvisOSLinux/jarvisos) | AI-native distro + 7-script build pipeline |
+| [jarvisos](https://github.com/JarvisOSLinux/jarvisos) | AI-native distro + 9-script build pipeline |
 | [Project-JARVIS](https://github.com/JarvisOSLinux/Project-JARVIS) | AI assistant daemon (LLM orchestration, TUI) |
 | [dispatch](https://github.com/JarvisOSLinux/dispatch) | Signal-driven task orchestrator |
 | [dmcp](https://github.com/JarvisOSLinux/dmcp) | MCP server lifecycle manager |
