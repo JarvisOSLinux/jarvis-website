@@ -60,7 +60,7 @@ again, since it has moved before — six → seven in 2026-07, seven → six in 
 | 3 | Misleading MCP Server Usage | Registry vetting + structured tool schema |
 | 4 | Unauthorized Sudo Requests via MCP | TLA system + PolicyKit enforcement |
 | 5 | Sudo Capability Exploitation | TLA + goal-scoped confirmation |
-| 6 | Bloated Context (novel) | Partial — dispatch rolling window + contextor pruning + the daemon's two-tier context manager (applied per ROOT turn since Project-JARVIS#213) bound the saturation half; the non-persistence half is open, with a persistent constraint register in the daemon (enforced at the dispatch gate) as the planned mitigation and the highest-priority open item |
+| 6 | Bloated Context (novel) | Partial — dispatch rolling window + contextor pruning + the daemon's two-tier context manager (applied per ROOT turn since Project-JARVIS#213) bound the saturation half; the persistent constraint register (Project-JARVIS#214, path-prefix deny rules enforced at the dispatch gate, re-injected into every ROOT prompt) is the first mechanical mitigation for the non-persistence half, which stays open for constraints beyond path rules — generalizing the register is the highest-priority open item |
 
 Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-enabled.
 
@@ -75,8 +75,12 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
   single config flag (`RESET_HISTORY_AFTER_RESPONSE`) decided which one you saw. Do not re-split the
   entry. That path was repaired in 2026-08 (Project-JARVIS#213) — the window is now applied on every
   ROOT turn and evicted exchanges are compressed — so write the *defect* in the past tense while
-  keeping the merge. The non-persistence half is still open: a lossy rolling summary is not a durable
-  constraint store and does not survive a restart.
+  keeping the merge. The non-persistence half now has a first mechanical mitigation — the persistent
+  constraint register (Project-JARVIS#214): path-prefix deny rules stored durably, enforced at the
+  dispatch gate, re-injected into every ROOT prompt — but stays open beyond path rules, because a
+  lossy rolling summary is not a durable constraint store and does not survive a restart. Never
+  describe sudo as expiring on task completion: it is an explicit, user-toggled, password-required
+  grant with per-escalation password entry, and no expiry mechanism exists.
 - "Misinterpreted MCP Keyword Search" is subsumed by "Misleading MCP Server Usage."
 - "Unintended File Modification/Deletion" is a consequence of threats 4+5, not a root cause.
 - The academic contribution is the **platform + taxonomy + mitigations**, not just the software.
@@ -101,7 +105,7 @@ github.com/JarvisOSLinux/
 ├── dmcp                   ← Rust MCP server lifecycle manager (dual-scope: user/system)
 ├── contextor              ← Rust persistent memory store (vector search, session summaries)
 ├── mcp-registry           ← community-vetted MCP server catalog
-├── jarvisos-app           ← desktop GUI widget (Rust + CXX-Qt + Qt6/QML)
+├── jarvisos-app           ← desktop GUI (Tauri 2: React/TS frontend + Rust backend; Qt/CXX-Qt retired 2026-07)
 ├── linux-jarvisos         ← custom kernel with /dev/jarvis character device drivers
 └── jarvisos-website       ← this repo
 ```

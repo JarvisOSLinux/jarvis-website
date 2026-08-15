@@ -82,7 +82,7 @@ const threats = [
     severity: "critical" as const,
     description:
       "Once granted sudo access, the LLM chains multiple privileged operations beyond the scope of the original request, creating compounding security risks that exceed what the user authorized.",
-    mitigation: "TLA + goal-scoped confirmation. Sudo access expires on task completion.",
+    mitigation: "TLA confirmation gate + dangerous-payload scan of tool parameters. Sudo is an explicit, user-toggled grant (a password-required sudoers drop-in): every individual escalation still requires the user's password out-of-band, so no single grant gives the agent unattended root.",
   },
   {
     title: "Bloated Context",
@@ -90,7 +90,7 @@ const threats = [
     novel: true,
     description:
       "The AI doesn't disobey security constraints — it forgets them. Context window saturation silently drops earlier instructions, and nothing durably stored them in the first place, so a context refresh loses them structurally rather than incidentally. No warning, no error. The boundaries you set vanish, and the agent keeps operating as if they never existed. No prior literature identifies context-lifecycle failure as a discrete threat.",
-    mitigation: "Partial — dispatch rolling signal window (last 20 entries) + contextor retention-based pruning bound the saturation half. Non-persistence is unmitigated and the highest-priority open item. Planned: a persistent constraint register in the daemon, enforced at the dispatch gate, that re-injects active security rules into every LLM prompt independent of context window state.",
+    mitigation: "Partial — the daemon's context window + rolling summary (applied every ROOT turn), dispatch's rolling signal window (last 20 entries), and contextor's retention-based pruning bound the saturation half. The non-persistence half has its first mechanical mitigation: a persistent constraint register in the daemon — path-prefix deny rules stored durably, enforced at the dispatch gate, and re-injected into every LLM prompt independent of context window state. Constraints beyond path rules remain open; generalizing the register is the highest-priority open item.",
   },
 ];
 ---
@@ -210,9 +210,11 @@ const threats = [
           conversational context to enforce security policy.
         </p>
         <p style="margin-top: var(--space-md);">
-          The saturation half is partially mitigated today by dispatch's rolling window and
-          contextor's pruning. The non-persistence half is unmitigated: there is no persistent
-          constraint register in the daemon, and building one is the highest-priority open item.
+          The saturation half is bounded today by the daemon's own context window and rolling
+          summary, dispatch's rolling window, and contextor's pruning. The non-persistence half
+          has its first mechanical mitigation: a persistent constraint register in the daemon —
+          path-prefix deny rules stored durably, enforced at the dispatch gate, and re-injected
+          into every prompt. Generalizing it beyond path rules is the highest-priority open item.
         </p>
       </div>
     </div>
@@ -257,12 +259,14 @@ const threats = [
         <div class="card">
           <h3 class="text-cyan">Bloated Context Mitigation</h3>
           <p>
-            dispatch's bounded rolling signal window (last 20 entries per wakeup) + contextor's
-            retention-based pruning bound the saturation half. Partial — persistent preservation
-            of security-critical constraints across context refreshes is not yet implemented.
-            Planned: a persistent constraint register in the JARVIS daemon, enforced at the
-            dispatch gate, that re-injects active security rules into every LLM prompt regardless
-            of context window state. The highest-priority open item on the roadmap.
+            The daemon's context window + rolling summary (applied every ROOT turn), dispatch's
+            bounded rolling signal window (last 20 entries per wakeup), and contextor's
+            retention-based pruning bound the saturation half. For the non-persistence half, a
+            persistent constraint register in the JARVIS daemon is live: path-prefix deny rules
+            stored durably, enforced at the dispatch gate, and re-injected into every LLM prompt
+            regardless of context window state. Partial — constraints beyond path rules still
+            travel only through the context channel; generalizing the register is the
+            highest-priority open item on the roadmap.
           </p>
         </div>
       </div>

@@ -48,7 +48,7 @@ whole context-lifecycle failure:
 | 3 | Misleading MCP Server Usage | User / Sudo / Web | Registry vetting + structured tool schema | partial |
 | 4 | Unauthorized Sudo Requests via MCP | Sudo / Web | TLA system + PolicyKit enforcement | implemented |
 | 5 | Sudo Capability Exploitation | Sudo / Web | TLA confirmation gate | implemented |
-| 6 | Bloated Context (novel) | User / Sudo / Web | dispatch rolling window + contextor pruning; persistent constraint register in the daemon, enforced at the dispatch gate, planned | partial — saturation bounded, non-persistence open |
+| 6 | Bloated Context (novel) | User / Sudo / Web | daemon hot window + rolling summary (every ROOT turn) + dispatch rolling window + contextor pruning; persistent constraint register (path-prefix deny rules) enforced at the dispatch gate | partial — saturation bounded; non-persistence mitigated for path rules, open beyond them |
 
 ### Key framing
 
@@ -121,12 +121,13 @@ a rolling summary carrying older turns forward — originally did **not** execut
 (the trim fired only on a mode switch that never occurred, so history grew
 unbounded and the summary stayed empty); it now runs on every ROOT turn, so the
 window is enforced and evicted exchanges are compressed rather than dropped.
-That bounds the **saturation** half. Persistent per-constraint preservation is
-designed but **not implemented** — a rolling summary is lossy compression chosen
-by a model, not a durable store, and nothing persists it across a restart, so a
-constraint stated once can still be summarized away. That gap is the
-non-persistence half of threat #6, and the planned mitigation is a persistent
-constraint register in the daemon, enforced at the dispatch gate.
+That bounds the **saturation** half. For the **non-persistence** half, the
+persistent constraint register shipped its first version: path-prefix deny
+rules persisted durably, enforced mechanically at the dispatch gate (ahead of
+the confirmation mode), and re-injected into every ROOT prompt. A rolling
+summary is still lossy compression chosen by a model, not a durable store, so
+a constraint outside the register's path-rule scope can still be summarized
+away — generalizing the register beyond path rules is the open item.
 
 ---
 
@@ -194,6 +195,18 @@ constraint register in the daemon, enforced at the dispatch gate.
 ---
 
 ## Changelog — corrected claims
+
+*2026-08-15:* the persistent constraint register moved from planned to shipped
+(Project-JARVIS#214): path-prefix deny rules persisted durably, enforced at the
+dispatch gate ahead of the confirmation mode, and re-injected into every ROOT
+prompt. The threat table, mitigation narrative, and `/research` page now state
+it as live with its path-rule scope explicit; the non-persistence half stays
+open for broader constraints. Also corrected on `/research`: threat 5's card
+claimed "sudo access expires on task completion" — no expiry mechanism exists
+and none is needed for the claim the card actually makes: sudo is an explicit,
+user-toggled, password-required grant, and every individual escalation still
+requires the user's password out-of-band (this was already corrected upstream
+in Project-JARVIS's 2026-07-22 changelog; the website had kept the old wording).
 
 *2026-08-01 (later):* the dead path described in the entry below has been
 repaired for the saturation half (Project-JARVIS#213). `LLM.ask()` now applies
