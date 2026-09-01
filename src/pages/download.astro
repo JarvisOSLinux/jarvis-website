@@ -20,25 +20,28 @@ const downloadSchema = JSON.stringify({
 ---
 
 <BaseLayout
-  title="Download JARVIS OS ISO"
-  description="Download the latest JARVIS OS ISO — AI-native Arch Linux with Ollama, KDE Plasma 6, and MCP orchestration. Verify SHA-512 checksums before install."
+  title="Download JARVIS"
+  description="Get JARVIS three ways: the JarvisOS ISO, the desktop app for Windows/macOS/Linux, or the CLI/TUI daemon via pip install project-jarvis."
 >
   <script slot="head" type="application/ld+json" set:html={downloadSchema} />
   <section class="section">
     <div class="container">
       <span class="section-label">Download</span>
-      <h1 class="section-title">Get JARVIS OS</h1>
+      <h1 class="section-title">Get JARVIS</h1>
       <p class="dl-intro">
-        Download the latest ISO, verify the checksum, and boot into an AI-native research
-        environment. JARVIS OS can be run in a VM or installed to hardware via the included
-        Calamares installer.
+        Three ways in: boot <strong>JarvisOS</strong> — the full AI-native operating system —
+        run the <strong>Jarvis App</strong> on the desktop you already have, or install the
+        <strong>CLI/TUI</strong> daemon straight from PyPI. The app and CLI both talk to the
+        same JARVIS daemon; the OS ships all of it preconfigured.
       </p>
     </div>
   </section>
 
-  <!-- Latest release (populated by GitHub API at runtime) -->
+  <!-- JarvisOS — latest ISO release (populated by GitHub API at runtime) -->
   <section class="section" style="padding-top: 0;">
     <div class="container">
+      <span class="section-label">JarvisOS</span>
+      <h2 class="section-title">The full system</h2>
       <div class="card release-card glow-border" id="latest-release">
         <div class="release-header">
           <span class="tag tag-medium">Latest Release</span>
@@ -76,11 +79,79 @@ const downloadSchema = JSON.stringify({
     </div>
   </section>
 
+  <!-- Jarvis App — desktop app releases (populated by GitHub API at runtime) -->
+  <section class="section">
+    <div class="container">
+      <span class="section-label">Jarvis App</span>
+      <h2 class="section-title">The desktop app</h2>
+      <div class="card release-card glow-border">
+        <div class="release-header">
+          <span class="tag tag-medium">Latest Release</span>
+          <span class="mono text-muted" id="app-release-tag">Loading&hellip;</span>
+        </div>
+        <p style="margin-top: var(--space-md);">
+          A native chat window for the JARVIS daemon &mdash; sessions, live permission
+          requests with per-task approval, and desktop widgets. Requires the daemon
+          (install the CLI below, or run JarvisOS).
+        </p>
+        <div class="release-actions" style="margin-top: var(--space-xl);" id="app-buttons">
+          <a href="https://github.com/JarvisOSLinux/jarvis-app/releases/latest" class="btn btn-outline"
+             target="_blank" rel="noopener noreferrer">All downloads &nearr;</a>
+        </div>
+        <p class="text-muted" style="margin-top: var(--space-lg); font-size: 0.9rem;">
+          Builds are currently unsigned: Windows SmartScreen warns (&ldquo;More info &rarr;
+          Run anyway&rdquo;) and macOS needs right-click &rarr; Open on first launch. The
+          macOS build is Apple silicon only for now. Linux needs WebKitGTK&nbsp;4.1.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jarvis CLI/TUI — the daemon itself -->
+  <section class="section">
+    <div class="container">
+      <span class="section-label">Jarvis CLI / TUI</span>
+      <h2 class="section-title">The daemon, anywhere</h2>
+      <div class="card release-card glow-border">
+        <p>
+          Project-JARVIS is the brain: LLM orchestration, the TLA security gate, MCP tool
+          dispatch, voice, and both terminal interfaces. Its download is a package, not a
+          file:
+        </p>
+        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>pip install project-jarvis
+jarvis providers add --type ollama --model qwen3:4b
+jarvis chat   # or: jarvis tui</code></pre>
+        <div class="release-actions" style="margin-top: var(--space-xl);">
+          <a href="https://pypi.org/project/project-jarvis/" class="btn btn-primary"
+             target="_blank" rel="noopener noreferrer">PyPI &nearr;</a>
+          <a href="https://github.com/JarvisOSLinux/Project-JARVIS" class="btn btn-outline"
+             target="_blank" rel="noopener noreferrer">Source &amp; docs &nearr;</a>
+        </div>
+        <p class="text-muted" style="margin-top: var(--space-lg); font-size: 0.9rem;">
+          Linux is the reference platform. Windows and macOS are supported in beta
+          (Python 3.11&ndash;3.13 recommended); tool servers from the MCP registry are
+          mostly Linux-only today.
+        </p>
+      </div>
+      <div class="card" style="margin-top: var(--space-lg);">
+        <h3>Sidecars</h3>
+        <p>
+          The daemon orchestrates three small Rust binaries. They install with JarvisOS and
+          build with <code>cargo</code>; prebuilt per-OS binaries live on each repo&rsquo;s
+          releases page:
+          <a href="https://github.com/JarvisOSLinux/dispatch/releases" target="_blank" rel="noopener noreferrer">dispatch</a> (task orchestrator) &middot;
+          <a href="https://github.com/JarvisOSLinux/dmcp/releases" target="_blank" rel="noopener noreferrer">dmcp</a> (MCP server manager) &middot;
+          <a href="https://github.com/JarvisOSLinux/contextor/releases" target="_blank" rel="noopener noreferrer">contextor</a> (long-term memory).
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- Install instructions -->
   <section class="section">
     <div class="container">
       <span class="section-label">Getting Started</span>
-      <h2 class="section-title">Installation</h2>
+      <h2 class="section-title">Installing JarvisOS</h2>
       <div class="grid-2">
         <div class="card">
           <h3>1. Boot from USB</h3>
@@ -281,5 +352,42 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
     }
   }
 
+  // Jarvis App: same latest-release pattern as the ISO card, with per-OS
+  // asset buttons matched by filename. Filenames carry the version, so
+  // fetching latest keeps links fresh without a site redeploy.
+  async function fetchAppRelease() {
+    const tagEl = document.getElementById("app-release-tag");
+    try {
+      const res = await fetch(
+        "https://api.github.com/repos/JarvisOSLinux/jarvis-app/releases/latest"
+      );
+      if (!res.ok) throw new Error("No releases found");
+      const data = await res.json();
+      if (tagEl) tagEl.textContent = data.name || data.tag_name;
+
+      const buttons = document.getElementById("app-buttons");
+      if (!buttons) return;
+      const groups: Array<[string, (n: string) => boolean]> = [
+        ["Windows", (n) => n.endsWith("-setup.exe") || n.endsWith(".msi")],
+        ["macOS", (n) => n.endsWith(".dmg")],
+        ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
+        ["Linux (deb)", (n) => n.endsWith(".deb")],
+        ["Linux (rpm)", (n) => n.endsWith(".rpm")],
+      ];
+      for (const [label, match] of groups) {
+        const asset = data.assets?.find((a: any) => match(a.name));
+        if (!asset) continue;
+        const a = document.createElement("a");
+        a.href = asset.browser_download_url;
+        a.className = "btn btn-primary";
+        a.textContent = label;
+        buttons.prepend(a);
+      }
+    } catch {
+      if (tagEl) tagEl.textContent = "see GitHub";
+    }
+  }
+
   fetchRelease();
+  fetchAppRelease();
 </script>
