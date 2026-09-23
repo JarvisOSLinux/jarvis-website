@@ -88,6 +88,45 @@ const researchSchema = JSON.stringify({
     </div>
   </section>
 
+  <!-- Recent Progress -->
+  <section class="section section--tight">
+    <div class="container">
+      <span class="section-label">What's new</span>
+      <h2 class="section-title">Recent progress</h2>
+      <div class="grid-3">
+        <div class="card news-card">
+          <span class="mono news-date">Aug 2026</span>
+          <span class="tag tag-novel">Fixed</span>
+          <h3>The AI can no longer quietly forget your safety rules</h3>
+          <p>
+            We found and fixed a bug where JARVIS's memory of your security rules could get
+            silently pushed out during long conversations. It now keeps a running summary of
+            those rules as the conversation grows, instead of dropping them.
+          </p>
+        </div>
+        <div class="card news-card">
+          <span class="mono news-date">Aug 2026</span>
+          <span class="tag tag-medium">Research</span>
+          <h3>Clearer threat taxonomy — six threats, one fix</h3>
+          <p>
+            Two overlapping findings about the AI losing track of instructions were combined
+            into a single, clearer threat: <strong>Bloated Context</strong>. Same research,
+            easier to explain.
+          </p>
+        </div>
+        <div class="card news-card">
+          <span class="mono news-date">Jul 2026</span>
+          <span class="tag tag-high">Download</span>
+          <h3>Every ISO now ships with a verified checksum</h3>
+          <p>
+            The download page now automatically fills in the release's real checksum, so you
+            can confirm your download wasn't corrupted or tampered with before you boot it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Key Finding -->
   <section class="section">
     <div class="container">
@@ -132,8 +171,8 @@ const researchSchema = JSON.stringify({
         <div class="card">
           <h3>Modular Build System</h3>
           <p>
-            Seven scripts transform a base Arch ISO into a bootable AI-native OS. Each stage
-            is isolated, auditable, and reproducible.
+            A sequence of modular scripts transforms a base Arch ISO into a bootable AI-native OS.
+            Each stage is isolated, auditable, and reproducible.
           </p>
         </div>
         <div class="card">
@@ -268,6 +307,26 @@ const researchSchema = JSON.stringify({
     color: var(--text-muted);
     flex-wrap: wrap;
     align-items: center;
+  }
+
+  /* Recent progress cards */
+  .news-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .news-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .news-card .tag {
+    align-self: flex-start;
+  }
+
+  .news-card h3 {
+    margin: 0;
   }
 
   /* Finding banner */
