@@ -8,18 +8,17 @@ const softwareSchema = JSON.stringify({
   operatingSystem: "Linux",
   applicationCategory: "OperatingSystem",
   description:
-    "An AI-native operating system built on Arch Linux that gives a large language model full OS privileges to empirically study LLM security threats including prompt injection, context window saturation, and MCP privilege escalation.",
+    "An AI assistant for Linux that finds and installs its own tools from a vetted MCP registry, asks before anything risky, runs local or cloud models, and can be driven from a phone over Tailscale. A research platform for LLM-OS security.",
   url: "https://jarvisoslinux.org",
   downloadUrl: "https://jarvisoslinux.org/download",
-  softwareVersion: "latest",
-  license: "https://opensource.org/licenses/MIT",
+  license: "https://www.gnu.org/licenses/gpl-3.0.html",
   author: {
     "@type": "Organization",
     name: "JarvisOSLinux",
     url: "https://github.com/JarvisOSLinux",
   },
   keywords:
-    "AI-native OS, LLM security, Model Context Protocol, prompt injection, Arch Linux, Ollama, MCP security threats",
+    "AI assistant, Linux, Model Context Protocol, MCP registry, LLM security, prompt injection, Arch Linux, llama.cpp",
 });
 
 const researchSchema = JSON.stringify({
@@ -38,223 +37,302 @@ const researchSchema = JSON.stringify({
     { "@type": "Person", name: "Toufic Majdalani" },
   ],
 });
+
+// A few of the registry's servers, as its manifests rate their tools.
+const registry = [
+  { name: "weather", what: "Forecasts and current conditions", level: "safe" },
+  { name: "currency", what: "Exchange rates from the ECB", level: "safe" },
+  { name: "news", what: "Headlines and topic search", level: "safe" },
+  { name: "maps", what: "Places, nearby search, routes", level: "safe" },
+  { name: "telegram", what: "Read and send as your bot", level: "dangerous" },
+  { name: "jarvis-shell-system", what: "Commands as root, via polkit", level: "dangerous" },
+];
+
+const threats = [
+  { name: "Malicious MCP Servers", tags: ["critical"] },
+  { name: "Prompt Injection", tags: ["critical"] },
+  { name: "Misleading MCP Server Usage", tags: ["high"] },
+  { name: "Unauthorized Sudo Requests via MCP", tags: ["critical"] },
+  { name: "Sudo Capability Exploitation", tags: ["critical"] },
+  { name: "Bloated Context", tags: ["critical", "novel"] },
+];
 ---
 
 <BaseLayout
-  fullTitle="JARVIS OS — AI-Native Operating System & LLM Security Research Platform"
-  description="An Arch Linux research OS that gives an LLM full system privileges to study prompt injection, context saturation, MCP security threats, and privilege escalation. Built at WSU Everett."
+  fullTitle="JARVIS OS — An AI that runs your Linux machine, and asks first"
+  description="JARVIS finds and installs its own tools from a vetted registry, does the work on your Linux machine, and waits for your OK before anything risky, on the laptop or your phone. Open source, built at WSU Everett."
 >
   <script slot="head" type="application/ld+json" set:html={softwareSchema} />
   <script slot="head" type="application/ld+json" set:html={researchSchema} />
+
   <!-- Hero -->
   <section class="hero">
-    <div class="container">
-      <div class="hero-content">
-        <img
-          src="/assets/jarvisos_cyan_logo_text.jpg"
-          alt="JARVIS OS — AI-Native Operating System"
-          class="hero-logo"
-        />
-        <span class="section-label">Research Platform</span>
-        <h1>
-          An AI-native operating system<br />
-          for studying <span class="text-cyan">LLM security threats</span>
-        </h1>
-        <p class="hero-sub">
-          JARVIS OS is an Arch Linux-based research platform that gives a large language model
-          full operating system privileges — then studies what can go wrong. Built at
-          <strong>WSU Everett</strong> to produce the first empirical threat taxonomy for
-          LLM-OS integration.
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="hero-eyebrow mono animate-fade-up">
+          Open source <span>·</span> Linux <span>·</span> WSU Everett research
         </p>
-        <div class="hero-actions">
-          <a
-            href="https://github.com/JarvisOSLinux/jarvisos"
-            class="btn btn-primary"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Check out our repo
-          </a>
-          <a href="/research" class="btn btn-outline">Read the Research</a>
+        <h1 class="animate-fade-up animate-fade-up--delay-1">
+          An AI that runs your Linux machine, and <span class="hl">asks before anything risky.</span>
+        </h1>
+        <p class="hero-sub animate-fade-up animate-fade-up--delay-2">
+          Tell JARVIS what you want. It finds the tool it needs, installs it on the spot and does
+          the work. Anything that could change your system waits for your OK, on the laptop or on
+          your phone.
+        </p>
+        <div class="hero-actions animate-fade-up animate-fade-up--delay-3">
+          <a href="/download" class="btn btn-primary">Get JARVIS</a>
+          <a href="#safety" class="btn btn-outline">How it stays safe</a>
         </div>
-        <div class="hero-meta mono">
-          <span>Arch Linux + KDE Plasma 6</span>
-          <span class="text-muted">&bull;</span>
-          <span>Ollama (local LLM)</span>
-          <span class="text-muted">&bull;</span>
-          <span>MCP Orchestration</span>
-        </div>
+        <ul class="hero-facts mono animate-fade-up animate-fade-up--delay-3">
+          <li><strong>30+</strong> vetted tool servers</li>
+          <li>Local or cloud models</li>
+          <li>Phone control over Tailscale</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual" aria-label="JARVIS installing a package and waiting for approval">
+        <figure class="screen hero-screen">
+          <div class="screen-bar"><i></i><i></i><i></i><span>jarvis-app</span></div>
+          <img
+            src="/assets/screens/app-approval.webp"
+            width="1600"
+            height="1030"
+            alt="The JARVIS app: asked to install cowsay, JARVIS found the root shell tool, started pacman as a job, and shows pacman asking to proceed while it waits for approval."
+            fetchpriority="high"
+          />
+        </figure>
+        <figure class="phone hero-phone">
+          <img
+            src="/assets/screens/phone-waiting.webp"
+            width="640"
+            height="1385"
+            alt="The same request on a phone, with pacman's question in the job's output and one permission request waiting."
+          />
+        </figure>
       </div>
     </div>
   </section>
 
-  <!-- Recent Progress -->
+  <!-- How a request goes -->
+  <section class="section section--tight steps-section">
+    <div class="container">
+      <ol class="steps">
+        <li>
+          <span class="step-n mono">01</span>
+          <h3>You ask</h3>
+          <p>Type it in the app, the terminal or your phone, or say it out loud.</p>
+        </li>
+        <li>
+          <span class="step-n mono">02</span>
+          <h3>It finds the tool</h3>
+          <p>JARVIS searches a vetted registry by meaning and installs only the server it needs.</p>
+        </li>
+        <li>
+          <span class="step-n mono">03</span>
+          <h3>You approve what matters</h3>
+          <p>Reading and looking things up just run. Anything that changes your system waits for you.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Finds its own tools -->
+  <section class="section feature">
+    <div class="container feature-grid">
+      <div class="feature-copy">
+        <span class="section-label">Tools on demand</span>
+        <h2>It finds its own tools, and only loads what it needs.</h2>
+        <p class="section-lede">
+          Many assistants load every tool you've connected into the model's prompt before you say
+          a word. JARVIS starts with none. It searches the registry by meaning, reads the docs of
+          the one server it picked and installs it, so even a small model stays focused.
+        </p>
+        <ul class="checks">
+          <li>Every server is pinned to a commit. dmcp checks the manifest's SHA-256 at install and refuses a mismatch.</li>
+          <li>Every tool has a reviewed threat level, and the confirmation gate reads it.</li>
+          <li>Settings and keys go into a form, never the chat.</li>
+        </ul>
+      </div>
+      <div class="registry card" aria-label="Some of the servers in the registry">
+        <div class="registry-head">
+          <span class="mono">mcp-registry</span>
+          <span class="mono text-muted">30+ servers</span>
+        </div>
+        <ul>
+          {registry.map((s) => (
+            <li>
+              <span class="reg-name mono">{s.name}</span>
+              <span class="reg-what">{s.what}</span>
+              <span class:list={["reg-level", "mono", `lvl-${s.level}`]}>{s.level}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="registry-foot mono">+ GitHub, Microsoft 365, Notion, email, CalDAV, Discord, Home Assistant, Playwright…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Asks first -->
+  <section class="section feature section--band" id="safety">
+    <div class="container feature-grid feature-grid--flip">
+      <div class="feature-copy">
+        <span class="section-label">Safety, in code</span>
+        <h2>It asks before anything risky.</h2>
+        <p class="section-lede">
+          Models don't reliably follow rules in a prompt, so JARVIS doesn't rely on them. Every
+          tool call goes through a gate before it runs.
+        </p>
+        <dl class="tiers">
+          <div><dt class="lvl-safe mono">safe</dt><dd>Runs. Reading, searching, looking things up.</dd></div>
+          <div><dt class="lvl-elevated mono">elevated</dt><dd>Waits for you. Signing in, reading private data.</dd></div>
+          <div><dt class="lvl-dangerous mono">dangerous</dt><dd>Waits for you. Sending, deleting, running commands.</dd></div>
+          <div><dt class="lvl-forbidden mono">forbidden</dt><dd>Refused, even with approvals turned off.</dd></div>
+        </dl>
+        <p class="fine">
+          Tool output is wrapped in a per-task random boundary, so a web page or a file can't pass
+          itself off as an instruction.
+        </p>
+      </div>
+      <div class="feature-visual feature-visual--phone">
+        <figure class="phone">
+          <img
+            src="/assets/screens/phone-waiting.webp"
+            width="640"
+            height="1385"
+            loading="lazy"
+            alt="JARVIS on a phone, waiting: pacman asks to proceed and the request is held."
+          />
+        </figure>
+        <img
+          class="approval-card"
+          src="/assets/screens/approval-card.webp"
+          width="760"
+          height="266"
+          loading="lazy"
+          alt="The permission card: answer pacman's question with Y, Approve or Deny."
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Root -->
+  <section class="section feature">
+    <div class="container feature-grid">
+      <div class="feature-copy">
+        <span class="section-label">Root access</span>
+        <h2>Root, without handing over root.</h2>
+        <p class="section-lede">
+          Commands that need root go to a separate server, and polkit starts it only with your
+          password. JARVIS never holds root itself.
+        </p>
+        <ul class="checks">
+          <li>A <code>sudo</code> the model adds is removed, and root commands go one at a time.</li>
+          <li>A package install becomes a job, so pacman's <code>[Y/n]</code> comes to you.</li>
+          <li>Stop ends JARVIS's turn but leaves a running update alone. Killing one takes a second press.</li>
+        </ul>
+      </div>
+      <figure class="screen feature-visual">
+        <div class="screen-bar"><i></i><i></i><i></i><span>jarvis-app</span></div>
+        <img
+          src="/assets/screens/app-done.webp"
+          width="1600"
+          height="1030"
+          loading="lazy"
+          alt="The finished request: the search, the pacman job, the approved answer to its question, and JARVIS saying cowsay is installed."
+        />
+      </figure>
+    </div>
+  </section>
+
+  <!-- More -->
   <section class="section section--tight">
     <div class="container">
-      <span class="section-label">What's new</span>
-      <h2 class="section-title">Recent progress</h2>
-      <div class="grid-3">
-        <div class="card news-card">
-          <span class="mono news-date">Aug 2026</span>
-          <span class="tag tag-novel">Fixed</span>
-          <h3>The AI can no longer quietly forget your safety rules</h3>
+      <div class="more-grid">
+        <div class="more">
+          <h3>From your phone</h3>
           <p>
-            We found and fixed a bug where JARVIS's memory of your security rules could get
-            silently pushed out during long conversations. It now keeps a running summary of
-            those rules as the conversation grows, instead of dropping them.
+            <code>jarvis web</code> serves the app to your phone over Tailscale, never the open
+            internet. Each person gets a role, every change is logged, and your API keys never
+            reach the phone.
           </p>
         </div>
-        <div class="card news-card">
-          <span class="mono news-date">Aug 2026</span>
-          <span class="tag tag-medium">Research</span>
-          <h3>Clearer threat taxonomy — six threats, one fix</h3>
+        <div class="more">
+          <h3>Any model, local or cloud</h3>
           <p>
-            Two overlapping findings about the AI losing track of instructions were combined
-            into a single, clearer threat: <strong>Bloated Context</strong>. Same research,
-            easier to explain.
+            Run a GGUF model on your machine with llama.cpp, or use any OpenAI-compatible API.
+            If one provider fails, JARVIS moves to the next, and you can change them without a
+            restart.
           </p>
         </div>
-        <div class="card news-card">
-          <span class="mono news-date">Jul 2026</span>
-          <span class="tag tag-high">Download</span>
-          <h3>Every ISO now ships with a verified checksum</h3>
+        <div class="more">
+          <h3>Shows its work</h3>
           <p>
-            The download page now automatically fills in the release's real checksum, so you
-            can confirm your download wasn't corrupted or tampered with before you boot it.
+            Every search, install and command is a block you can open, with its live output.
+            You can see what's running and stop any of it.
+          </p>
+        </div>
+        <div class="more">
+          <h3>Voice</h3>
+          <p>
+            A wake word and offline speech: Vosk or faster-whisper to listen, Piper to answer.
+            JARVIS can also say what it's about to do before it does it.
           </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Key Finding -->
-  <section class="section">
-    <div class="container">
-      <div class="finding-banner glow-border">
-        <span class="tag tag-critical">Critical Threat</span>
-        <span class="tag tag-novel" style="margin-left: var(--space-sm);">Novel</span>
-        <h2>Bloated Context</h2>
-        <p>
-          Context window saturation silently drops security constraints mid-session — and
-          nothing durably stores them, so a context refresh loses them outright. The AI
-          doesn't disobey your rules. It forgets them. This is the first identification of
-          context-lifecycle failure as a <strong>discrete security threat</strong> rather
-          than a reliability problem.
+  <!-- Research -->
+  <section class="section section--band research-band">
+    <div class="container research-grid">
+      <div>
+        <span class="section-label">Research</span>
+        <h2>Built to study what goes wrong.</h2>
+        <p class="section-lede">
+          JARVIS is also a research platform. We gave a language model operating-system privileges
+          and catalogued how that fails. The result is the first empirical threat taxonomy for
+          LLM-OS integration, and each mitigation on this page answers one of its threats.
         </p>
-        <a href="/research#bloated-context" class="btn btn-outline" style="margin-top: var(--space-lg);">
-          Learn more &rarr;
+        <p class="award mono">SURCA 2026 · Winner, Gray Grant</p>
+        <a href="/research" class="btn btn-outline">Read the research</a>
+      </div>
+      <ol class="threat-list">
+        {threats.map((t, i) => (
+          <li>
+            <span class="mono threat-n">{String(i + 1).padStart(2, "0")}</span>
+            <span class="threat-name">{t.name}</span>
+            <span class="threat-tags">
+              {t.tags.map((tag) => <span class:list={["tag", `tag-${tag}`]}>{tag}</span>)}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Get it -->
+  <section class="section">
+    <div class="container">
+      <span class="section-label">Get JARVIS</span>
+      <h2 class="section-title">Three ways in.</h2>
+      <div class="grid-3 get-grid">
+        <a class="card get" href="/download#app">
+          <h3>The app</h3>
+          <p>A desktop window for JARVIS: chat, approvals, settings, providers. Linux, macOS and Windows.</p>
+          <span class="get-more mono">Download →</span>
         </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Features overview — asymmetric layout -->
-  <section class="section">
-    <div class="container">
-      <span class="section-label">Architecture</span>
-      <h2 class="section-title">How JARVIS OS works</h2>
-      <div class="features-grid">
-        <div class="card features-card--lead">
-          <h3>Local LLM Inference</h3>
-          <p>
-            Powered by Ollama — all inference runs on-device with zero cloud dependencies.
-            Full privacy, full control. No API keys, no rate limits, no telemetry.
-          </p>
-        </div>
-        <div class="card">
-          <h3>dispatch + dmcp</h3>
-          <p>
-            Signal-driven task orchestrator paired with an MCP server lifecycle manager.
-            One brain dispatches concurrent tool calls; many hands execute them in parallel.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Modular Build System</h3>
-          <p>
-            A sequence of modular scripts transforms a base Arch ISO into a bootable AI-native OS.
-            Each stage is isolated, auditable, and reproducible.
-          </p>
-        </div>
-        <div class="card">
-          <h3>KDE Plasma 6 / Wayland</h3>
-          <p>
-            Modern desktop environment running on the Wayland display protocol — a full
-            graphical workstation, not just a CLI tool.
-          </p>
-        </div>
-        <div class="card">
-          <h3>TUI Installer</h3>
-          <p>
-            Dialog-based installer for permanent deployment to hardware. Auto-installs
-            dependencies, supports auto and manual partitioning.
-          </p>
-        </div>
-        <div class="card features-card--wide">
-          <h3>Security Research Platform</h3>
-          <p>
-            Purpose-built to expose and document the real security threats that emerge when
-            LLMs gain OS-level control. Research-first, product-second.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Threat overview -->
-  <section class="section">
-    <div class="container">
-      <span class="section-label">Research</span>
-      <h2 class="section-title">Threat Taxonomy</h2>
-      <p style="margin-bottom: var(--space-2xl);">
-        Empirically identified through building and operating an AI-native OS.
-        Three privilege escalation stages studied: user-level, sudo-enabled, and web-enabled.
-      </p>
-      <div class="threat-overview-grid">
-        <div class="threat-row">
-          <span>Malicious MCP Servers</span>
-          <span class="tag tag-critical">Critical</span>
-        </div>
-        <div class="threat-row">
-          <span>Prompt Injection</span>
-          <span class="tag tag-critical">Critical</span>
-        </div>
-        <div class="threat-row">
-          <span>Misleading MCP Server Usage</span>
-          <span class="tag tag-high">High</span>
-        </div>
-        <div class="threat-row">
-          <span>Unauthorized Sudo Requests via MCP</span>
-          <span class="tag tag-critical">Critical</span>
-        </div>
-        <div class="threat-row">
-          <span>Sudo Capability Exploitation</span>
-          <span class="tag tag-critical">Critical</span>
-        </div>
-        <div class="threat-row">
-          <span>Bloated Context</span>
-          <span class="threat-row-tags">
-            <span class="tag tag-critical">Critical</span>
-            <span class="tag tag-novel">Novel</span>
-          </span>
-        </div>
-      </div>
-      <a href="/research" class="btn btn-outline" style="margin-top: var(--space-xl);">
-        Full research &rarr;
-      </a>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="section">
-    <div class="container" style="text-align: center;">
-      <span class="section-label">Get started</span>
-      <h2 class="section-title">Download JARVIS OS</h2>
-      <p style="margin: 0 auto var(--space-xl);">
-        Grab the latest ISO, verify the checksum, and boot into an AI-native research environment.
-      </p>
-      <div class="hero-actions" style="justify-content: center;">
-        <a href="/download" class="btn btn-primary">Download ISO</a>
-        <a href="/docs" class="btn btn-outline">Read the Docs</a>
+        <a class="card get" href="/download#daemon">
+          <h3>The daemon</h3>
+          <p>JARVIS itself, with its terminal UI, on the Linux you already run.</p>
+          <span class="get-more mono">Install →</span>
+        </a>
+        <a class="card get" href="/download#jarvisos">
+          <h3>JarvisOS</h3>
+          <p>The whole system on Arch Linux and KDE Plasma 6, built from source with one pipeline.</p>
+          <span class="get-more mono">Build it →</span>
+        </a>
       </div>
     </div>
   </section>
@@ -263,34 +341,51 @@ const researchSchema = JSON.stringify({
 <style>
   /* Hero */
   .hero {
-    padding: var(--space-4xl) 0;
-    min-height: 72vh;
-    display: flex;
+    position: relative;
+    padding: calc(var(--space-3xl) + 1rem) 0 var(--space-3xl);
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    inset: -20% -10% auto 30%;
+    height: 900px;
+    background: radial-gradient(closest-side, #00c8ff1f, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--space-3xl);
     align-items: center;
   }
 
-  .hero-content {
-    max-width: 760px;
-    animation: fade-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .hero-logo {
-    width: min(380px, 100%);
-    height: auto;
-    margin-bottom: var(--space-xl);
-    border-radius: 6px;
-    opacity: 0.92;
-  }
-
-  .hero h1 {
+  .hero-eyebrow {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
     margin-bottom: var(--space-lg);
   }
 
+  .hero-eyebrow span {
+    color: var(--text-muted);
+    margin: 0 0.35em;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 4.6vw, 3.6rem);
+    margin-bottom: var(--space-lg);
+  }
+
+  .hl {
+    color: var(--cyan);
+  }
+
   .hero-sub {
-    font-size: 1.08rem;
+    font-size: 1.2rem;
+    line-height: 1.65;
+    max-width: 34rem;
     margin-bottom: var(--space-xl);
-    max-width: 600px;
-    line-height: 1.7;
   }
 
   .hero-actions {
@@ -300,157 +395,386 @@ const researchSchema = JSON.stringify({
     margin-bottom: var(--space-xl);
   }
 
-  .hero-meta {
+  .hero-facts {
     display: flex;
-    gap: var(--space-md);
-    font-size: 0.78rem;
-    color: var(--text-muted);
     flex-wrap: wrap;
-    align-items: center;
-  }
-
-  /* Recent progress cards */
-  .news-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .news-date {
-    font-size: 0.78rem;
+    gap: 0.5rem 1.5rem;
+    list-style: none;
+    font-size: 0.8rem;
     color: var(--text-muted);
   }
 
-  .news-card .tag {
-    align-self: flex-start;
+  .hero-facts strong {
+    color: var(--text-primary);
+    font-weight: 500;
   }
 
-  .news-card h3 {
-    margin: 0;
-  }
-
-  /* Finding banner */
-  .finding-banner {
-    padding: var(--space-2xl);
-    border-radius: 6px;
-    background: var(--bg-card);
-    border-left: 3px solid var(--red);
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  .finding-banner h2 {
-    margin: var(--space-md) 0 var(--space-md);
-  }
-
-  .finding-banner p {
-    max-width: 640px;
-    font-size: 0.95rem;
-    line-height: 1.7;
-  }
-
-  /* Threat overview */
-  .threat-overview-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .threat-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: var(--space-md);
-    align-items: center;
-    padding: var(--space-md) var(--space-lg);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    font-size: 0.9rem;
-    transition: background var(--transition-fast), border-color var(--transition-fast), padding-left var(--transition-base);
+  .hero-visual {
     position: relative;
+    padding-bottom: 3rem;
   }
 
-  .threat-row-tags {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+  .hero-screen img {
+    width: 100%;
+    height: auto;
   }
 
-  .threat-row::before {
-    content: "";
+  .hero-phone {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--cyan);
-    transform: scaleY(0);
-    transition: transform var(--transition-base);
-    transform-origin: bottom;
+    width: 32%;
+    max-width: 210px;
+    right: -1.5rem;
+    bottom: -0.5rem;
   }
 
-  .threat-row:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-glow);
-    padding-left: calc(var(--space-lg) + 4px);
+  .hero-phone img {
+    width: 100%;
+    height: auto;
   }
 
-  .threat-row:hover::before {
-    transform: scaleY(1);
+  /* Steps */
+  .steps-section {
+    border-top: 1px solid var(--border-subtle);
   }
 
-  .threat-row:first-child {
-    border-radius: 6px 6px 0 0;
-  }
-
-  .threat-row:last-child {
-    border-radius: 0 0 6px 6px;
-  }
-
-  /* Features asymmetric grid */
-  .features-grid {
+  .steps {
+    list-style: none;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-xl);
   }
 
-  .features-card--lead {
-    grid-column: span 2;
+  .step-n {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--cyan);
+    margin-bottom: var(--space-sm);
   }
 
-  .features-card--wide {
-    grid-column: span 2;
+  .steps h3 {
+    margin-bottom: var(--space-xs);
   }
 
-  @media (max-width: 900px) {
-    .features-grid {
-      grid-template-columns: repeat(2, 1fr);
+  .steps p {
+    font-size: 0.97rem;
+  }
+
+  /* Feature rows */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3xl);
+    align-items: center;
+  }
+
+  .feature-grid--flip .feature-copy {
+    order: 2;
+  }
+
+  .feature h2 {
+    margin-bottom: var(--space-lg);
+    max-width: 18ch;
+  }
+
+  .feature .section-lede {
+    margin-bottom: var(--space-xl);
+  }
+
+  .checks {
+    list-style: none;
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .checks li {
+    position: relative;
+    padding-left: 1.75rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .checks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.45em;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--cyan);
+    background: radial-gradient(circle, var(--cyan) 0 30%, transparent 34%);
+  }
+
+  .feature-visual img {
+    width: 100%;
+    height: auto;
+  }
+
+  .feature-visual--phone {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: var(--space-xl) 0;
+  }
+
+  .approval-card {
+    position: absolute;
+    width: min(330px, 70%);
+    left: 0;
+    bottom: 22%;
+    border-radius: 14px;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 30px 60px -20px #000000f0, 0 0 40px -10px #00c8ff40;
+  }
+
+  .feature-visual--phone .phone {
+    width: min(300px, 80%);
+  }
+
+  .feature-visual--phone .phone img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Registry card */
+  .registry {
+    padding: 0;
+  }
+
+  .registry-head {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+
+  .registry ul {
+    list-style: none;
+  }
+
+  .registry li {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) auto;
+    gap: var(--space-md);
+    align-items: center;
+    padding: 0.85rem var(--space-lg);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .reg-name {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reg-what {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .reg-level {
+    font-size: 0.72rem;
+  }
+
+  .registry-foot {
+    padding: var(--space-md) var(--space-lg);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  .lvl-safe { color: var(--green); }
+  .lvl-elevated { color: var(--cyan); }
+  .lvl-dangerous { color: var(--gold); }
+  .lvl-forbidden { color: var(--red); }
+
+  /* Tiers */
+  .tiers {
+    display: grid;
+    gap: 0;
+    margin-bottom: var(--space-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .tiers div {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--space-md);
+    padding: 0.8rem var(--space-lg);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+  }
+
+  .tiers div:last-child {
+    border-bottom: none;
+  }
+
+  .tiers dt {
+    font-size: 0.8rem;
+    padding-top: 0.15rem;
+  }
+
+  .tiers dd {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+
+  .fine {
+    font-size: 0.95rem;
+  }
+
+  /* More */
+  .more-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-2xl);
+  }
+
+  .more h3 {
+    margin-bottom: var(--space-sm);
+  }
+
+  .more p {
+    font-size: 0.95rem;
+  }
+
+  /* Research */
+  .research-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3xl);
+    align-items: center;
+  }
+
+  .research-grid h2 {
+    margin-bottom: var(--space-lg);
+  }
+
+  .research-grid .section-lede {
+    margin-bottom: var(--space-lg);
+  }
+
+  .award {
+    font-size: 0.8rem;
+    color: var(--gold);
+    margin-bottom: var(--space-xl);
+  }
+
+  .threat-list {
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .threat-list li {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    gap: var(--space-md);
+    align-items: center;
+    padding: 0.95rem var(--space-lg);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .threat-list li:last-child {
+    border-bottom: none;
+  }
+
+  .threat-n {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .threat-name {
+    font-weight: 500;
+  }
+
+  .threat-tags {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  /* Get */
+  .get {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    color: inherit;
+  }
+
+  .get p {
+    flex: 1;
+  }
+
+  .get-more {
+    font-size: 0.82rem;
+    color: var(--cyan);
+    margin-top: var(--space-md);
+  }
+
+  .get:hover {
+    color: inherit;
+  }
+
+  @media (max-width: 1080px) {
+    .more-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 960px) {
+    .hero-grid,
+    .feature-grid,
+    .research-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2xl);
     }
 
-    .features-card--lead,
-    .features-card--wide {
-      grid-column: span 2;
+    .feature-grid--flip .feature-copy {
+      order: 0;
+    }
+
+    .hero-phone {
+      right: 0.5rem;
+      width: 30%;
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 720px) {
     .hero {
-      min-height: auto;
-      padding: var(--space-3xl) 0;
+      padding-top: var(--space-2xl);
     }
 
-    .hero-meta {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-xs);
+    .hero-sub {
+      font-size: 1.08rem;
     }
 
-    .features-grid {
-      grid-template-columns: 1fr;
+    .steps,
+    .more-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-xl);
     }
 
-    .features-card--lead,
-    .features-card--wide {
-      grid-column: span 1;
+    .registry li {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .reg-what {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      font-size: 0.85rem;
+      margin-top: -0.4rem;
+    }
+
+    .tiers div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.2rem;
     }
   }
 </style>

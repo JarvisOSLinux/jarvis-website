@@ -36,7 +36,7 @@ Voice Input ──► Vosk STT ──► wake words "jarvis / hey jarvis / okay 
 Text Input  ─────────────────────────────────┐        (configurable via WAKE_WORDS)
                                               ▼
                 LLM provider pool ── automatic failover
-              Ollama (local, default) / OpenAI-compatible APIs
+          llama.cpp (local GGUF) / OpenAI-compatible APIs
                               │
                               ▼
                   Plan (JSON: structured actions)
@@ -55,7 +55,7 @@ Text Input  ──────────────────────�
                  dmcp (MCP server manager)
                               │
                               ▼
-     MCP servers (shellmcp subprocess shell, git, browser, ...)
+     MCP servers (shell, git, browser, ...: installed on demand from the registry)
                               │
           ┌───────────────────▼────────────────────┐
           │            linux-jarvisos kernel        │
@@ -66,8 +66,8 @@ Text Input  ──────────────────────�
 ```
 
 JARVIS is provider-agnostic: the daemon maintains a priority-ordered pool of LLM providers —
-local Ollama and any OpenAI-compatible API — with automatic failover and per-provider cooldowns.
-Local Ollama is the default and offline path, not the only path.
+local GGUF models it runs itself on llama.cpp, and any OpenAI-compatible API — with automatic
+failover and per-provider cooldowns. A local model is the offline path, not the only path.
 
 Threat tiers are assigned by the host (the TLA system), never by the model: the effective level
 is max(host floor, manifest declaration, payload scan), so neither the LLM's plan nor a server

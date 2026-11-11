@@ -7,8 +7,8 @@ const subsystems = [
     name: "Project-JARVIS",
     repo: "Project-JARVIS",
     description:
-      "The AI assistant system — Python daemon, LLM orchestration via Ollama, Textual TUI, voice I/O (Vosk + Piper), session persistence, and the security confirmation gate. This is the brain.",
-    tags: ["python", "ollama", "tui", "daemon"],
+      "The AI assistant itself: a Python daemon that runs the model (a local GGUF through llama.cpp, or any OpenAI-compatible API, with failover), finds and runs tools, and holds the confirmation gate. Textual TUI, voice (Vosk or faster-whisper, Piper), sessions, and the phone gateway. This is the brain.",
+    tags: ["python", "llama.cpp", "tui", "daemon"],
   },
   {
     name: "dispatch",
@@ -46,11 +46,11 @@ const subsystems = [
     tags: ["arch-linux", "build-pipeline", "iso"],
   },
   {
-    name: "jarvisos-app",
-    repo: "jarvisos-app",
+    name: "jarvis-app",
+    repo: "jarvis-app",
     description:
-      "Desktop GUI widget. ChatGPT-style chat interface built with Rust + CXX-Qt 0.7 + Qt6/QML. Connects to the JARVIS daemon over a bidirectional Unix socket.",
-    tags: ["rust", "qt6", "qml", "gui"],
+      "The desktop app and the phone page, one UI: chat, sessions, approvals, settings, providers and desktop widgets. A Tauri 2 app talking to the daemon over its local socket; `jarvis web` serves the same page to your phone.",
+    tags: ["tauri", "rust", "javascript", "gui"],
   },
   {
     name: "linux-jarvisos",
@@ -64,7 +64,7 @@ const subsystems = [
 
 <BaseLayout
   title="Subsystems & Architecture"
-  description="JARVIS OS subsystem breakdown — dispatch (Rust signal orchestrator), dmcp (MCP server manager), contextor (vector memory store), Project-JARVIS AI daemon, custom linux-jarvisos kernel, and jarvisos-app Qt6 GUI."
+  description="How JARVIS OS is built: the Project-JARVIS daemon, dispatch (Rust signal orchestrator), dmcp (MCP server manager), contextor (vector memory), the MCP registry, the jarvis-app desktop and phone UI, and the linux-jarvisos kernel."
 >
   <section class="section">
     <div class="container">
@@ -72,7 +72,7 @@ const subsystems = [
       <h1 class="section-title">Subsystems</h1>
       <p class="sub-intro">
         The JARVIS ecosystem is built as a set of modular, independently maintained
-        subsystems. Each component lives in its own repository under the
+        subsystems. Each component lives in its own repository under the{" "}
         <a href="https://github.com/JarvisOSLinux" target="_blank" rel="noopener noreferrer">
           JarvisOSLinux GitHub organization</a>.
       </p>
@@ -89,7 +89,7 @@ const subsystems = [
           <div class="diagram-arrow arrow-anim" style="--arrow-delay: 0.2s;">&#9654;</div>
           <div class="diagram-node node-primary">Project-JARVIS</div>
           <div class="diagram-arrow arrow-anim" style="--arrow-delay: 0.4s;">&#9654;</div>
-          <div class="diagram-node node-accent">LLM (Ollama)</div>
+          <div class="diagram-node node-accent">LLM (local or API)</div>
         </div>
 
         <!-- Connector down -->
@@ -115,7 +115,7 @@ const subsystems = [
         <div class="diagram-row row-support">
           <div class="diagram-node node-secondary">contextor</div>
           <div class="diagram-node node-secondary">mcp-registry</div>
-          <div class="diagram-node node-secondary">jarvisos-app</div>
+          <div class="diagram-node node-secondary">jarvis-app</div>
         </div>
 
         <!-- Connector down -->
@@ -155,9 +155,9 @@ const subsystems = [
 ├── contextor             ← Rust vector-based memory store
 ├── mcp-registry          ← JSON registry of installable MCP servers
 ├── jarvisos              ← AI-native Linux distro (Arch base + build pipeline)
-├── jarvisos-app          ← Desktop GUI (Rust + Qt6/QML)
+├── jarvis-app            ← Desktop app and phone page (Tauri 2)
 ├── linux-jarvisos        ← Custom kernel with /dev/jarvis drivers
-└── jarvisos-website      ← this website</code></pre>
+└── jarvis-website        ← this website</code></pre>
       </div>
     </div>
   </section>

@@ -8,7 +8,7 @@ const downloadSchema = JSON.stringify({
   operatingSystem: "Linux",
   applicationCategory: "OperatingSystem",
   description:
-    "Bootable Arch Linux ISO with Ollama local LLM inference, KDE Plasma 6, MCP orchestration layer, and the JARVIS AI assistant daemon. Purpose-built for LLM security research.",
+    "Bootable Arch Linux ISO with local LLM inference, KDE Plasma 6, MCP orchestration layer, and the JARVIS AI assistant daemon. Purpose-built for LLM security research.",
   url: "https://jarvisoslinux.org",
   downloadUrl: "https://jarvisoslinux.org/download",
   author: {
@@ -21,7 +21,7 @@ const downloadSchema = JSON.stringify({
 
 <BaseLayout
   title="Download JARVIS"
-  description="Get JARVIS three ways: the JarvisOS ISO, the desktop app for Windows/macOS/Linux, or the CLI/TUI daemon via pip install project-jarvis."
+  description="Get JARVIS three ways: the desktop app for Linux, macOS and Windows, the JARVIS daemon with its terminal UI, or JarvisOS built from source."
 >
   <script slot="head" type="application/ld+json" set:html={downloadSchema} />
   <section class="section">
@@ -29,16 +29,16 @@ const downloadSchema = JSON.stringify({
       <span class="section-label">Download</span>
       <h1 class="section-title">Get JARVIS</h1>
       <p class="dl-intro">
-        Three ways in: boot <strong>JarvisOS</strong> — the full AI-native operating system —
-        run the <strong>Jarvis App</strong> on the desktop you already have, or install the
-        <strong>CLI/TUI</strong> daemon straight from PyPI. The app and CLI both talk to the
-        same JARVIS daemon; the OS ships all of it preconfigured.
+        Three ways in. Install the <strong>JARVIS daemon</strong> on the Linux you already run
+        and use its terminal UI, add the <strong>desktop app</strong> for a window, or build{" "}
+        <strong>JarvisOS</strong>, the whole system preconfigured on Arch Linux. The app, the
+        terminal and your phone all talk to the same daemon.
       </p>
     </div>
   </section>
 
   <!-- JarvisOS — latest ISO release (populated by GitHub API at runtime) -->
-  <section class="section" style="padding-top: 0;">
+  <section class="section" style="padding-top: 0;" id="jarvisos">
     <div class="container">
       <span class="section-label">JarvisOS</span>
       <h2 class="section-title">The full system</h2>
@@ -47,9 +47,9 @@ const downloadSchema = JSON.stringify({
           <span class="tag tag-medium">Latest Release</span>
           <span class="mono text-muted" id="release-date">Loading...</span>
         </div>
-        <h2 id="release-tag" style="margin-top: var(--space-md);">Fetching latest release...</h2>
+        <h2 id="release-tag" style="margin-top: var(--space-md);">Checking for an ISO&hellip;</h2>
         <p id="release-body" style="margin-top: var(--space-sm);">
-          Connecting to GitHub API to fetch the latest release information.
+          Asking GitHub for the latest JarvisOS release.
         </p>
         <div class="release-actions" style="margin-top: var(--space-xl);">
           <a href="#" class="btn btn-primary" id="download-btn" style="display: none;">
@@ -70,7 +70,7 @@ const downloadSchema = JSON.stringify({
         <div class="card" style="margin-top: var(--space-lg);">
           <p>
             JavaScript is required to fetch the latest release from GitHub. You can also
-            browse releases directly at
+            browse releases directly at{" "}
             <a href="https://github.com/JarvisOSLinux/jarvisos/releases" target="_blank" rel="noopener noreferrer">
               github.com/JarvisOSLinux/jarvisos/releases</a>.
           </p>
@@ -80,7 +80,7 @@ const downloadSchema = JSON.stringify({
   </section>
 
   <!-- Jarvis App — desktop app releases (populated by GitHub API at runtime) -->
-  <section class="section">
+  <section class="section" id="app">
     <div class="container">
       <span class="section-label">Jarvis App</span>
       <h2 class="section-title">The desktop app</h2>
@@ -90,9 +90,9 @@ const downloadSchema = JSON.stringify({
           <span class="mono text-muted" id="app-release-tag">Loading&hellip;</span>
         </div>
         <p style="margin-top: var(--space-md);">
-          A native chat window for the JARVIS daemon &mdash; sessions, live permission
-          requests with per-task approval, and desktop widgets. Requires the daemon
-          (install the CLI below, or run JarvisOS).
+          A desktop window for the JARVIS daemon: chat, sessions, permission requests with
+          per-task approval, settings, providers and desktop widgets. It needs the daemon
+          (below) or JarvisOS.
         </p>
         <div class="release-actions" style="margin-top: var(--space-xl);" id="app-buttons">
           <a href="https://github.com/JarvisOSLinux/jarvis-app/releases/latest" class="btn btn-outline"
@@ -108,24 +108,35 @@ const downloadSchema = JSON.stringify({
   </section>
 
   <!-- Jarvis CLI/TUI — the daemon itself -->
-  <section class="section">
+  <section class="section" id="daemon">
     <div class="container">
-      <span class="section-label">Jarvis CLI / TUI</span>
-      <h2 class="section-title">The daemon, anywhere</h2>
+      <span class="section-label">The daemon</span>
+      <h2 class="section-title">JARVIS on the Linux you run</h2>
       <div class="card release-card glow-border">
         <p>
-          Project-JARVIS is the brain: LLM orchestration, the TLA security gate, MCP tool
-          dispatch, voice, and both terminal interfaces. Its download is a package, not a
-          file:
+          Project-JARVIS is the brain: the model, the confirmation gate, finding and running
+          tools, voice, the terminal UI and the phone gateway. Install it from source, then
+          give it a model, local or any OpenAI-compatible API:
         </p>
-        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>pip install project-jarvis
-jarvis providers add --type ollama --model qwen3:4b
-jarvis chat   # or: jarvis tui</code></pre>
+        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>git clone https://github.com/JarvisOSLinux/Project-JARVIS.git
+cd Project-JARVIS && pip install -e ".[tui]"
+
+# a model on this machine (needs llama.cpp's llama-server) ...
+jarvis providers add --type llamacpp --model Qwen/Qwen3-4B-GGUF:Q4_K_M
+# ... or any OpenAI-compatible API
+jarvis providers add --type api --model &lt;model&gt; --url &lt;api url&gt; --key &lt;key&gt;
+
+jarvis tui</code></pre>
+        <p class="text-muted" style="margin-top: var(--space-md); font-size: 0.9rem;">
+          PyPI's <code>project-jarvis</code> is the last release, 2.0.0 from August 2026. It
+          predates local models through llama.cpp, phone control and the root-command guards,
+          so install from source for what this site describes.
+        </p>
         <div class="release-actions" style="margin-top: var(--space-xl);">
-          <a href="https://pypi.org/project/project-jarvis/" class="btn btn-primary"
-             target="_blank" rel="noopener noreferrer">PyPI &nearr;</a>
-          <a href="https://github.com/JarvisOSLinux/Project-JARVIS" class="btn btn-outline"
+          <a href="https://github.com/JarvisOSLinux/Project-JARVIS" class="btn btn-primary"
              target="_blank" rel="noopener noreferrer">Source &amp; docs &nearr;</a>
+          <a href="https://pypi.org/project/project-jarvis/" class="btn btn-outline"
+             target="_blank" rel="noopener noreferrer">PyPI (2.0.0) &nearr;</a>
         </div>
         <p class="text-muted" style="margin-top: var(--space-lg); font-size: 0.9rem;">
           Linux is the reference platform. Windows and macOS are supported in beta
@@ -191,7 +202,7 @@ jarvis chat   # or: jarvis tui</code></pre>
   <!-- Mirrors / source -->
   <section class="section">
     <div class="container">
-      <span class="section-label">Source</span>
+      <span class="section-label" id="build">Source</span>
       <h2 class="section-title">Build from source</h2>
       <div class="card">
         <p>
@@ -300,10 +311,12 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
     } catch {
       const tagEl = document.getElementById("release-tag");
       const bodyEl = document.getElementById("release-body");
-      if (tagEl) tagEl.textContent = "No releases yet";
+      const dateEl = document.getElementById("release-date");
+      if (tagEl) tagEl.textContent = "Build it from source for now";
+      if (dateEl) dateEl.textContent = "No ISO published yet";
       if (bodyEl)
         bodyEl.innerHTML =
-          'Check <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a> directly.';
+          'There is no prebuilt ISO yet. The pipeline under <a href="#build">Build from source</a> produces one; published ISOs will appear on <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a>.';
     }
   }
 

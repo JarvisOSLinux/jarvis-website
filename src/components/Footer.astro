@@ -8,12 +8,12 @@ const year = new Date().getFullYear();
     <div class="footer-grid">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img src="/assets/jarvios_cyan_logo.png" alt="JARVIS OS" class="footer-logo-img" />
+          <img src="/logo.svg" alt="" class="footer-logo-img" width="28" height="28" />
           <span class="footer-logo-text">JARVIS OS</span>
         </div>
         <p class="footer-tagline">
-          AI-native operating system research platform.<br />
-          Washington State University — Everett.
+          An AI that runs your Linux machine, and asks before anything risky.<br />
+          A research project at Washington State University Everett.
         </p>
       </div>
 
@@ -21,8 +21,8 @@ const year = new Date().getFullYear();
         <h4 class="footer-heading">Project</h4>
         <ul>
           <li><a href="/research">Research</a></li>
-          <li><a href="/subsystems">Subsystems</a></li>
-          <li><a href="/download">Download</a></li>
+          <li><a href="/subsystems">How it's built</a></li>
+          <li><a href="/download">Get JARVIS</a></li>
           <li><a href="/docs">Docs</a></li>
         </ul>
       </div>
@@ -76,16 +76,16 @@ const year = new Date().getFullYear();
   }
 
   .footer-logo-img {
-    height: 36px;
-    width: auto;
+    width: 28px;
+    height: 28px;
   }
 
   .footer-logo-text {
-    font-family: var(--font-heading);
+    font-family: var(--font-brand);
     font-weight: 700;
-    font-size: 1.1rem;
-    letter-spacing: 0.08em;
-    color: var(--cyan);
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    color: var(--text-primary);
   }
 
   .footer-tagline {
@@ -96,10 +96,10 @@ const year = new Date().getFullYear();
 
   .footer-heading {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--cyan);
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
     margin-bottom: var(--space-md);
   }
 
