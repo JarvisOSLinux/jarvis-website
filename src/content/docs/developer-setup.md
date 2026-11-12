@@ -11,8 +11,8 @@ page covers how to get the full stack working correctly.
 ## Prerequisites
 
 - JARVIS OS installed from the live ISO (or kernel + daemon installed via `--host-install` + `--overlay`)
-- For the default local-inference path: Ollama running (`systemctl status ollama`) with at least
-  one model pulled (`ollama list`). Remote Ollama instances and OpenAI-compatible APIs also work —
+- For local models: llama.cpp's `llama-server` on `PATH` (`sudo pacman -S llama-cpp`). JARVIS
+  downloads the GGUF model itself and starts the server. Any OpenAI-compatible API works too —
   see step 2.
 
 ## 1. Verify the kernel module loads at boot
@@ -40,20 +40,23 @@ sudo systemctl restart systemd-modules-load.service
 
 Provider and model configuration lives in a provider pool (`providers.json`), not in
 `jarvis.conf`. The pool is a priority-ordered failover list: the daemon tries providers in
-order until one responds. Entries can be local or remote Ollama instances, or any
-OpenAI-compatible API. Without at least one provider configured, `jarvis`, `jarvis run`,
-and `jarvis chat` refuse to start with `Error: No LLM configured.`
+order until one responds, and gives one that fails a cooldown before trying it again. The
+types are `llamacpp` (a GGUF model JARVIS runs on this machine), `api` (any OpenAI-compatible
+API), `lmstudio` and `ollama-cloud`. JARVIS needs at least one; a provider added or changed
+while it runs is used from its next request, with no restart.
 
-Add a local Ollama provider (the daemon reads `/etc/jarvis/providers.json` because the
-systemd unit sets `JARVIS_CONFIG_DIR=/etc/jarvis`):
+Add a local model (the daemon reads `/etc/jarvis/providers.json` because the systemd unit
+sets `JARVIS_CONFIG_DIR=/etc/jarvis`):
 
 ```bash
-ollama list                    # Find installed models
-sudo JARVIS_CONFIG_DIR=/etc/jarvis jarvis providers add --type ollama --model qwen3:14b
+sudo JARVIS_CONFIG_DIR=/etc/jarvis jarvis providers add --type llamacpp --model Qwen/Qwen3-4B-GGUF:Q4_K_M
 ```
 
-Remote Ollama instances and OpenAI-compatible APIs are added the same way, and
-`jarvis providers move` reorders the failover priority:
+The model is a GGUF file or a Hugging Face `user/repo:quant`; `jarvis model pull` downloads one
+ahead of time. An OpenAI-compatible API is added the same way, and `jarvis providers move`
+reorders the failover priority. A `providers.json` from before the llama.cpp runner, with
+`ollama` entries, is converted once on the next start and backed up as
+`providers.json.v1.bak`:
 
 ```bash
 jarvis providers add --type api --model <model> --url <api-url> --key <api-key>

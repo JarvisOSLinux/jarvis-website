@@ -1,24 +1,25 @@
 ---
-const currentPath = Astro.url.pathname;
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 const links = [
-  { href: "/", label: "Home" },
   { href: "/research", label: "Research" },
-  { href: "/subsystems", label: "Subsystems" },
-  { href: "/download", label: "Download" },
+  { href: "/subsystems", label: "How it's built" },
   { href: "/docs", label: "Docs" },
-  { href: "/contributors", label: "Contributors" },
+  { href: "/contributors", label: "Team" },
 ];
+
+const isActive = (href: string) =>
+  currentPath === href || currentPath.startsWith(href + "/");
 ---
 
 <nav class="nav">
   <div class="container nav-inner">
-    <a href="/" class="nav-logo">
-      <img src="/assets/jarvios_cyan_logo.png" alt="JARVIS OS" class="nav-logo-img" />
+    <a href="/" class="nav-logo" aria-label="JARVIS OS home">
+      <img src="/logo.svg" alt="" class="nav-logo-img" width="30" height="30" />
       <span class="logo-text">JARVIS OS</span>
     </a>
 
-    <button class="nav-toggle" aria-label="Toggle menu" id="nav-toggle">
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links" id="nav-toggle">
       <span></span>
       <span></span>
       <span></span>
@@ -29,7 +30,8 @@ const links = [
         <li>
           <a
             href={link.href}
-            class:list={["nav-link", { active: currentPath === link.href }]}
+            class:list={["nav-link", { active: isActive(link.href) }]}
+            aria-current={isActive(link.href) ? "page" : undefined}
           >
             {link.label}
           </a>
@@ -38,12 +40,15 @@ const links = [
       <li>
         <a
           href="https://github.com/JarvisOSLinux"
-          class="nav-link nav-link-gh"
+          class="nav-link"
           target="_blank"
           rel="noopener noreferrer"
         >
-          GitHub &nearr;
+          GitHub
         </a>
+      </li>
+      <li class="nav-cta-item">
+        <a href="/download" class:list={["nav-cta", { active: isActive("/download") }]}>Get JARVIS</a>
       </li>
     </ul>
   </div>
@@ -56,16 +61,17 @@ const links = [
     left: 0;
     right: 0;
     height: var(--nav-height);
-    background: #07090fdd;
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    background: #070a10b3;
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid transparent;
     z-index: 1000;
-    transition: border-color var(--transition-base), background var(--transition-slow);
+    transition: border-color var(--transition-base), background var(--transition-base);
   }
 
   .nav.scrolled {
-    background: #07090ff5;
-    border-bottom-color: var(--border-glow);
+    background: #070a10eb;
+    border-bottom-color: var(--border);
   }
 
   .nav-inner {
@@ -78,12 +84,8 @@ const links = [
   .nav-logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-family: var(--font-heading);
-    font-size: 1.15rem;
-    font-weight: 700;
+    gap: 0.6rem;
     color: var(--text-primary);
-    letter-spacing: 0.08em;
   }
 
   .nav-logo:hover {
@@ -91,88 +93,83 @@ const links = [
   }
 
   .nav-logo-img {
-    height: 32px;
-    width: auto;
+    width: 30px;
+    height: 30px;
   }
 
   .logo-text {
-    color: var(--cyan);
+    font-family: var(--font-brand);
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
   }
 
   .nav-links {
     display: flex;
     list-style: none;
-    gap: var(--space-xs);
+    gap: 0.25rem;
     align-items: center;
   }
 
   .nav-link {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.92rem;
+    font-weight: 500;
     color: var(--text-secondary);
-    padding: 0.5em 0.9em;
-    border-radius: 4px;
+    padding: 0.45em 0.85em;
+    border-radius: 999px;
     transition: color var(--transition-fast), background var(--transition-fast);
-    text-transform: lowercase;
-    position: relative;
-  }
-
-  .nav-link::after {
-    content: "";
-    position: absolute;
-    bottom: 2px;
-    left: 0.9em;
-    right: 0.9em;
-    height: 1px;
-    background: var(--cyan);
-    transform: scaleX(0);
-    transition: transform var(--transition-base);
-    transform-origin: center;
   }
 
   .nav-link:hover {
-    color: var(--cyan);
-    background: #00c8ff08;
-  }
-
-  .nav-link:hover::after {
-    transform: scaleX(1);
+    color: var(--text-primary);
+    background: #ffffff08;
   }
 
   .nav-link.active {
-    color: var(--cyan);
-    background: #00c8ff0a;
-    border: 1px solid var(--border-glow);
+    color: var(--text-primary);
+    background: #ffffff0d;
   }
 
-  .nav-link.active::after {
-    transform: scaleX(1);
+  .nav-cta-item {
+    margin-left: 0.6rem;
   }
 
-  .nav-link-gh {
-    color: var(--text-muted);
+  .nav-cta {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #04121a;
+    background: var(--cyan);
+    padding: 0.5em 1.05em;
+    border-radius: 999px;
+    transition: background var(--transition-fast);
   }
 
-  /* Mobile toggle */
+  .nav-cta:hover,
+  .nav-cta.active {
+    color: #04121a;
+    background: var(--cyan-soft);
+  }
+
   .nav-toggle {
     display: none;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
+    padding: 10px;
+    margin-right: -10px;
   }
 
   .nav-toggle span {
     display: block;
     width: 20px;
     height: 2px;
+    border-radius: 2px;
     background: var(--text-secondary);
-    transition: all var(--transition-fast);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 820px) {
     .nav-toggle {
       display: flex;
     }
@@ -184,9 +181,10 @@ const links = [
       left: 0;
       right: 0;
       flex-direction: column;
+      align-items: stretch;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border);
-      padding: var(--space-md) var(--space-lg);
+      padding: var(--space-sm) var(--space-md) var(--space-lg);
       gap: 0;
     }
 
@@ -195,20 +193,26 @@ const links = [
     }
 
     .nav-link {
-      padding: 0.75em 0.5em;
+      display: block;
+      padding: 0.85em 0.25em;
       border-radius: 0;
       border-bottom: 1px solid var(--border-subtle);
-      width: 100%;
     }
 
-    .nav-link::after {
-      display: none;
+    .nav-link.active,
+    .nav-link:hover {
+      background: none;
+      color: var(--cyan);
     }
 
-    .nav-link.active {
-      border: none;
-      border-bottom: 1px solid var(--border-subtle);
-      background: #00c8ff08;
+    .nav-cta-item {
+      margin: var(--space-md) 0 0;
+    }
+
+    .nav-cta {
+      display: block;
+      text-align: center;
+      padding: 0.8em;
     }
   }
 </style>
@@ -219,18 +223,11 @@ const links = [
   const nav = document.querySelector(".nav");
 
   toggle?.addEventListener("click", () => {
-    links?.classList.toggle("open");
+    const open = links?.classList.toggle("open") ?? false;
+    toggle.setAttribute("aria-expanded", String(open));
   });
 
-  // Scroll-aware nav border
-  const onScroll = () => {
-    if (window.scrollY > 60) {
-      nav?.classList.add("scrolled");
-    } else {
-      nav?.classList.remove("scrolled");
-    }
-  };
-
+  const onScroll = () => nav?.classList.toggle("scrolled", window.scrollY > 24);
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 </script>

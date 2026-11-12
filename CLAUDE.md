@@ -86,14 +86,25 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
 - The academic contribution is the **platform + taxonomy + mitigations**, not just the software.
   Traditional OS security models are inadequate for probabilistic AI agents — this is the thesis.
 - Project is research-first, product-second. "Built for people, not corporations." Open source is
-  a structural necessity, not a preference.
+  a structural necessity, not a preference. Since 2026-11-10 the **home page leads with the
+  product** (Yakup's call): what JARVIS does, in real screens, then the research as its own
+  section and page. Product copy stays technical and checkable; every claim on the home page
+  names something that exists on `main`.
 
-## Design language (established — match it, don't reinvent it)
-- Dark theme: `#07090f` background, `#00c8ff` cyan accent, `#f0a500` gold for warnings.
-- Fonts: `Chakra Petch` (headings), `DM Mono` (code/labels), `DM Sans` (body).
-- Grid overlay background, scan line animations, bordered cards.
+## Design language (product-first redesign, 2026-11-10 — match it)
+- Dark and calm: `#070a10` background, `#00c8ff` cyan as the one accent. Gold, red and green
+  only for severity and threat levels.
+- Fonts: `Space Grotesk` (headings), `DM Sans` (body), `DM Mono` (labels, code, small facts).
+  `Chakra Petch` only for the "JARVIS OS" wordmark.
+- Lead with real screens of JARVIS (`public/assets/screens/`, taken from jarvis-app's real UI
+  with a scripted scene; `scripts/screens/README.md` says how to retake them), framed by
+  `.screen` (a window) and `.phone`. Never a mock-up passed off as the product.
+- Wide two-column sections that alternate copy and picture; no empty half-page, no grid overlay
+  or scan lines, and boxes only where they group something (registry list, tiers, threats).
+- The logo is `public/logo.svg` (transparent). The old `jarvios_*`/`jarvisos_*` JPG/PNGs sit on a
+  black rectangle; do not use them on a page. The share image is `public/assets/og.png`.
 - Severity labels: Critical (red), High (gold), Medium (cyan), Novel (green).
-- Tone: technical, research-credible, not marketing fluff.
+- Tone: plain, technical, checkable. No marketing fluff, no claim the code doesn't back.
 
 ## GitHub org structure
 Each `/subsystems` card links to a repo under the `JarvisOSLinux` org:
@@ -105,7 +116,7 @@ github.com/JarvisOSLinux/
 ├── dmcp                   ← Rust MCP server lifecycle manager (dual-scope: user/system)
 ├── contextor              ← Rust persistent memory store (vector search, session summaries)
 ├── mcp-registry           ← community-vetted MCP server catalog
-├── jarvisos-app           ← desktop GUI (Tauri 2: React/TS frontend + Rust backend; Qt/CXX-Qt retired 2026-07)
+├── jarvis-app             ← desktop app and phone page (Tauri 2; one UI, also served by `jarvis web`; was jarvisos-app)
 ├── linux-jarvisos         ← custom kernel with /dev/jarvis character device drivers
-└── jarvisos-website       ← this repo
+└── jarvis-website         ← this repo (was jarvisos-website)
 ```

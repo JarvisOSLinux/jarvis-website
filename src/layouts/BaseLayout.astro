@@ -11,7 +11,7 @@ interface Props {
 
 const {
   title,
-  description = "JARVIS OS — An AI-native operating system built on Arch Linux for researching LLM-OS security threats.",
+  description = "JARVIS OS: an AI assistant that runs your Linux machine, finds its own tools, and asks before anything risky. A research platform for LLM-OS security, built at WSU Everett.",
   fullTitle,
 } = Astro.props;
 
@@ -20,7 +20,7 @@ const pageTitle =
   (title ? `${title} | JARVIS OS` : "JARVIS OS — AI-Native Operating System");
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL("/assets/jarvisos_cyan_logo_text.jpg", Astro.site);
+const ogImage = new URL("/assets/og.png", Astro.site);
 
 const websiteSchema = JSON.stringify({
   "@context": "https://schema.org",
@@ -74,7 +74,10 @@ const websiteSchema = JSON.stringify({
     <meta name="twitter:image" content={ogImage} />
 
     <title>{pageTitle}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="theme-color" content="#070a10" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
     <script type="application/ld+json" set:html={websiteSchema} />
 

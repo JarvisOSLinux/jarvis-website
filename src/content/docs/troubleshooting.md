@@ -67,18 +67,18 @@ kernel, then the ISO: `make step3b step6 step7` (run `make` from `iso-build-scri
 
 ## JARVIS agent
 
-**`Ollama not reachable`**
+**`'llama-server' not found on PATH`**
 
-JARVIS auto-starts Ollama when it is unreachable (`OLLAMA_AUTO_START=true` by default): it tries
-the platform service manager, then falls back to spawning `ollama serve` directly. If you still
-see this error, auto-start failed — check that the `ollama` binary is installed and the service
-isn't masked (auto-start is also skipped for remote Ollama hosts), then start it manually:
+JARVIS runs local models, and the embedding model behind tool search and memory, on llama.cpp's
+`llama-server`, which it starts itself. Install llama.cpp, or point `LLAMA_SERVER_BIN` at a
+`llama-server` you already have:
 
 ```bash
-systemctl start ollama
-# or for a user session:
-ollama serve &
+sudo pacman -S llama-cpp
 ```
+
+Until it is found, tool search falls back to matching keywords, and `/status` says so under
+Search.
 
 **No voice input (`vosk`/`sounddevice` missing)**
 
@@ -112,11 +112,12 @@ Model selection lives in the provider pool (`providers.json`), not `jarvis.conf`
 `LLM_MODEL` there is a no-op for the current daemon. Add a provider instead:
 
 ```bash
-jarvis providers add --type ollama --model qwen3:14b   # or whichever model you have pulled
-jarvis providers                                       # list configured providers
+jarvis providers add --type llamacpp --model Qwen/Qwen3-4B-GGUF:Q4_K_M   # a model on this machine
+jarvis providers                                                       # list configured providers
 ```
 
-The pool also accepts remote providers: `jarvis providers add --type api --url <url> --key <key>`.
+The pool also accepts any OpenAI-compatible API:
+`jarvis providers add --type api --model <model> --url <url> --key <key>`.
 
 **`jarvis providers` shows the wrong/old model (e.g. `qwen3:4b` when `qwen3:14b` is installed)**
 

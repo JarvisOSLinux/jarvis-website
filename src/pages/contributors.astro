@@ -62,7 +62,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <div class="container">
       <h2 style="margin-bottom: var(--space-xl);">GitHub Contributors</h2>
       <p style="margin-bottom: var(--space-lg);">
-        Contributors across all repositories in the
+        Contributors across all repositories in the{" "}
         <a href="https://github.com/JarvisOSLinux" target="_blank" rel="noopener noreferrer">jarvisos</a>
         organization, fetched live from the GitHub API.
       </p>
@@ -74,7 +74,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <noscript>
         <div class="card" style="margin-top: var(--space-lg);">
           <p>
-            JavaScript is required to load contributors from GitHub. Visit the
+            JavaScript is required to load contributors from GitHub. Visit the{" "}
             <a href="https://github.com/orgs/JarvisOSLinux/people" target="_blank" rel="noopener noreferrer">
               organization page</a> to see the full team.
           </p>
@@ -132,7 +132,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </style>
 
 <script>
-  const REPOS = ["Project-JARVIS", "dispatch", "dmcp", "contextor", "mcp-registry", "jarvisos", "jarvisos-app", "linux-jarvisos", "jarvisos-website"];
+  const REPOS = ["Project-JARVIS", "dispatch", "dmcp", "contextor", "mcp-registry", "jarvisos", "jarvis-app", "linux-jarvisos", "jarvis-website"];
 
   async function fetchContributors() {
     const grid = document.getElementById("contributors-grid");
