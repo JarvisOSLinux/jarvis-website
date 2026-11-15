@@ -1,0 +1,265 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import registry from "../data/servers.json";
+import { serverCopy } from "../data/server-copy";
+
+type Server = (typeof registry.servers)[number];
+
+const groups = [
+  { title: "Your computer", categories: ["system", "computer-use", "storage", "media"] },
+  { title: "Messages and email", categories: ["messaging", "email"] },
+  { title: "Calendar and notes", categories: ["calendar", "knowledge-management", "productivity"] },
+  { title: "Search and the web", categories: ["search", "browser"] },
+  { title: "Everyday", categories: ["weather", "finance", "travel", "home-automation"] },
+  { title: "Make and build", categories: ["creative", "automation", "developer-tools", "database"] },
+];
+
+const grouped = new Set(groups.flatMap((g) => g.categories));
+const sections = [
+  ...groups.map((g) => ({
+    title: g.title,
+    servers: registry.servers.filter((s) => g.categories.includes(s.category)),
+  })),
+  { title: "More", servers: registry.servers.filter((s) => !grouped.has(s.category)) },
+].filter((s) => s.servers.length > 0);
+
+const firstSentence = (text: string) => {
+  let line = text.split(/(?<=\.)\s|\s--\s|\s—\s/)[0].replace(/\.$/, "");
+  const cut = line.search(/[:;(]/);
+  if (line.length > 120 && cut > 30) line = line.slice(0, cut).trim();
+  return line + ".";
+};
+
+const describe = (s: Server) => ({
+  name: serverCopy[s.id]?.name ?? s.name.replace(/^JARVIS /, "").replace(/\s*(—.*|-?MCP)$/, ""),
+  line: serverCopy[s.id]?.line ?? firstSentence(s.summary),
+});
+
+const asks = (s: Server) => s.tools.elevated + s.tools.dangerous + s.tools.forbidden;
+const total = (s: Server) => s.tools.safe + asks(s);
+
+const toolCount = registry.servers.reduce((n, s) => n + total(s), 0);
+const askCount = registry.servers.reduce((n, s) => n + asks(s), 0);
+const updated = new Date(registry.updated).toLocaleDateString("en-US", {
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
+---
+
+<BaseLayout
+  title="Tools"
+  description={`The ${registry.servers.length} tool servers JARVIS can install on the spot from its vetted registry: your system, email, calendar, messaging, search, maps, smart home and more. Bring your own too.`}
+>
+  <section class="section servers-hero">
+    <div class="container">
+      <span class="section-label">Tools</span>
+      <h1>What JARVIS can pick up on the spot.</h1>
+      <p class="section-lede">
+        JARVIS starts with no tools. Ask for something and it finds the one that fits on this
+        list, installs it and gets to work. Every server here was reviewed, is pinned to an exact
+        version and is checked when it installs, and each of its tools is rated, so JARVIS knows
+        when to ask you.
+      </p>
+      <ul class="stats mono">
+        <li><strong>{registry.servers.length}</strong> servers</li>
+        <li><strong>{toolCount}</strong> tools</li>
+        <li><strong>{toolCount - askCount}</strong> just run</li>
+        <li><strong>{askCount}</strong> ask you first</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--flush-top">
+    <div class="container">
+      <aside class="byo card">
+        <h2>Bring your own</h2>
+        <p>
+          These are the vetted servers in the JARVIS registry, not the only ones JARVIS can use.
+          Add any MCP server by its address with <code>dmcp install</code>, or a registry of your
+          own with <code>dmcp sources</code>. Nobody has vetted those, so JARVIS asks you before
+          each of their tools runs.
+        </p>
+      </aside>
+
+      {sections.map((section) => (
+        <div class="group">
+          <h2 class="group-title">{section.title}</h2>
+          <ul class="server-grid">
+            {section.servers.map((s) => {
+              const d = describe(s);
+              const n = total(s);
+              return (
+                <li class="server card">
+                  <div class="server-head">
+                    <h3>{d.name}</h3>
+                    {s.trust === "official" && <span class="official mono" title="Made by the JARVIS team">official</span>}
+                  </div>
+                  <p class="server-line">{d.line}</p>
+                  <div class="server-foot">
+                    <span class="bar" aria-hidden="true">
+                      <i class="bar-safe" style={`flex: ${s.tools.safe}`}></i>
+                      <i class="bar-elevated" style={`flex: ${s.tools.elevated}`}></i>
+                      <i class="bar-dangerous" style={`flex: ${s.tools.dangerous + s.tools.forbidden}`}></i>
+                    </span>
+                    <span class="mono server-count">
+                      {n} {n === 1 ? "tool" : "tools"}
+                      {asks(s) === 0 ? " · all just run" : asks(s) === n ? " · all ask first" : ` · ${asks(s)} ask first`}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+
+      <p class="source mono">
+        From the{" "}
+        <a href="https://github.com/JarvisOSLinux/mcp-registry" target="_blank" rel="noopener noreferrer">JARVIS MCP registry</a>,
+        updated {updated}. Test servers and examples for server authors are left out.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .servers-hero {
+    padding-bottom: var(--space-2xl);
+  }
+
+  .servers-hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    max-width: 18ch;
+    margin-bottom: var(--space-lg);
+  }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    list-style: none;
+    margin-top: var(--space-xl);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .stats strong {
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    font-weight: 500;
+    margin-right: 0.3rem;
+  }
+
+  .byo {
+    border-color: var(--border-glow);
+    background: linear-gradient(135deg, #00c8ff0f, var(--bg-card) 60%);
+    margin-bottom: var(--space-3xl);
+  }
+
+  .byo h2 {
+    font-size: 1.3rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .byo p {
+    max-width: 70ch;
+  }
+
+  .group {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .group-title {
+    font-size: 1.35rem;
+    margin-bottom: var(--space-lg);
+  }
+
+  .server-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-md);
+  }
+
+  .server {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-lg);
+  }
+
+  .server-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .server h3 {
+    font-size: 1.1rem;
+  }
+
+  .official {
+    font-size: 0.68rem;
+    color: var(--cyan);
+    border: 1px solid #00c8ff55;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+  }
+
+  .server-line {
+    flex: 1;
+    font-size: 0.95rem;
+  }
+
+  .server-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+  }
+
+  .bar {
+    display: flex;
+    gap: 2px;
+    width: 4.5rem;
+    height: 6px;
+    flex: none;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar i {
+    display: block;
+    min-width: 0;
+  }
+
+  .bar-safe { background: var(--green); }
+  .bar-elevated { background: var(--cyan); }
+  .bar-dangerous { background: var(--gold); }
+
+  .server-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .source {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  @media (max-width: 960px) {
+    .server-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .server-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

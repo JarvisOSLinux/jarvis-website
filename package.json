@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "sync-servers": "node scripts/sync-servers.mjs",
+    "prebuild": "node scripts/sync-servers.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
