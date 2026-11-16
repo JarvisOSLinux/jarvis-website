@@ -31,12 +31,15 @@ preset, so run `npx astro check` if you want type diagnostics — it isn't wired
   page via `<slot />`; page-specific `<script slot="head" type="application/ld+json">` adds per-page
   schema.org JSON-LD.
 - Reusable pieces live in `src/components/` (`Nav`, `Footer`, `SubsystemCard`, `ThreatCard`).
-- **GitHub API calls are client-side, not build-time**: `download.astro` and `contributors.astro`
-  fetch `api.github.com` from a plain `<script>` tag that runs in the visitor's browser after page
-  load (see `fetchRelease()` / `fetchContributors()`), with an inline fallback UI if the fetch fails.
-  No GitHub token — these are unauthenticated client requests subject to GitHub's anonymous rate
-  limit.
-- **The one build-time fetch is the tool list.** `scripts/sync-servers.mjs` (npm `prebuild`, or
+- **GitHub data is fetched at build time, never in the visitor's browser**: `download.astro` and
+  `contributors.astro` call `github()` (`src/lib/github.ts`) in their frontmatter, and contributor
+  avatars are inlined as data URIs. `github()` returns null when the API is unreachable or
+  rate-limited (unauthenticated, 10 s timeout), and each page renders a fallback. Release and
+  contributor data are as fresh as the last build.
+- **Fonts are self-hosted** in `public/fonts/` (Google Fonts' latin + latin-ext woff2 subsets, each
+  family's `OFL.txt` beside them), declared by `@font-face` at the top of `global.css`. No page
+  makes a third-party font request.
+- **The tool list is synced at build time too.** `scripts/sync-servers.mjs` (npm `prebuild`, or
   `npm run sync-servers`) reads the mcp-registry's `registry.json` and each manifest and writes
   `src/data/servers.json`: every server but the fixtures (`fixture: true`) and deprecated or
   removed entries, with its `title` and `tagline` (the registry's copy for people,

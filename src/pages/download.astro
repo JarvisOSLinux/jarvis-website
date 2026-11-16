@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { github } from "../lib/github";
 
 const downloadSchema = JSON.stringify({
   "@context": "https://schema.org",
@@ -19,6 +20,61 @@ const downloadSchema = JSON.stringify({
 });
 
 const gh = "https://github.com/JarvisOSLinux";
+
+// Releases are read from GitHub when the site is built (src/lib/github.ts), so
+// a new release shows here after the next build and deploy.
+
+// Desktop app: one button per platform from the latest release's assets.
+const app = await github("repos/JarvisOSLinux/jarvis-app/releases/latest");
+const appGroups: Array<[string, (n: string) => boolean]> = [
+  ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
+  ["Linux (deb)", (n) => n.endsWith(".deb")],
+  ["Linux (rpm)", (n) => n.endsWith(".rpm")],
+  ["macOS", (n) => n.endsWith(".dmg")],
+  ["Windows", (n) => n.endsWith("-setup.exe") || n.endsWith(".msi")],
+];
+const appButtons = appGroups.flatMap(([label, match]) => {
+  const asset = app?.assets?.find((a: any) => match(a.name));
+  return asset ? [{ label, href: asset.browser_download_url }] : [];
+});
+
+// A dedicated checksum asset (<name>.sha512 / SHA512SUMS*) wins over a 128-hex
+// digest in the release notes; null when neither exists.
+async function findChecksum(data: any, isoName: string): Promise<string | null> {
+  const SHA512_RE = /\b[0-9a-fA-F]{128}\b/;
+  const sumAsset = data.assets?.find(
+    (a: any) =>
+      a.name.toLowerCase().endsWith(".sha512") || a.name.toUpperCase().startsWith("SHA512SUMS")
+  );
+  if (sumAsset) {
+    try {
+      const res = await fetch(sumAsset.browser_download_url, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) {
+        const lines = (await res.text()).trim().split("\n");
+        const line = lines.find((l) => l.includes(isoName)) || lines[0];
+        const hex = line?.match(SHA512_RE)?.[0];
+        if (hex) return hex;
+      }
+    } catch {
+      /* fall through to the release notes */
+    }
+  }
+  return data.body?.match(SHA512_RE)?.[0] ?? null;
+}
+
+// JarvisOS: the card says there is no ISO until a release carries one.
+const os = await github("repos/JarvisOSLinux/jarvisos/releases/latest");
+const iso = os?.assets?.find((a: any) => a.name.endsWith(".iso")) ?? null;
+const checksum = iso ? await findChecksum(os, iso.name) : null;
+const released = iso
+  ? new Date(os.published_at).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  : null;
 ---
 
 <BaseLayout
@@ -152,8 +208,13 @@ jarvis providers add --type api --model <model> --url <api url> --key <key>`}</c
           Chat, approvals, sessions, settings and providers in a window. It talks to JARVIS on
           this computer, so do the four steps first.
         </p>
-        <p class="mono text-muted dl-release" id="app-release-tag">Checking the latest release&hellip;</p>
-        <div class="dl-buttons" id="app-buttons">
+        <p class="mono text-muted dl-release">
+          {app ? `Latest: ${app.tag_name}` : "See the releases on GitHub."}
+        </p>
+        <div class="dl-buttons">
+          {appButtons.map((b) => (
+            <a href={b.href} class="btn btn-primary">{b.label}</a>
+          ))}
           <a href={`${gh}/jarvis-app/releases/latest`} class="btn btn-outline"
              target="_blank" rel="noopener noreferrer">All downloads ↗</a>
         </div>
@@ -191,24 +252,39 @@ jarvis providers add --type api --model <model> --url <api url> --key <key>`}</c
           to the AI.
         </p>
       </div>
-      <div class="card os-card" id="os-release">
-        <span class="tag tag-medium" id="os-status">Not released yet</span>
-        <h3 id="os-title">No ISO to download yet</h3>
-        <p id="os-body">
-          You can build one on an Arch-based computer with 16&nbsp;GB of RAM and 60&nbsp;GB free.
-          The build runs end to end; booting it live and the installer are still being finished.
-        </p>
-        <div class="dl-buttons">
-          <a href="#" class="btn btn-primary" id="os-download" hidden>Download ISO</a>
-          <a href="/docs/building-the-iso" class="btn btn-outline" id="os-build">How to build it →</a>
-          <a href={`${gh}/jarvisos/releases`} class="btn btn-outline" id="os-releases"
-             target="_blank" rel="noopener noreferrer">Releases ↗</a>
+      {iso ? (
+        <div class="card os-card">
+          <span class="tag tag-medium">Released {released}</span>
+          <h3>{os.name || os.tag_name}</h3>
+          <p>Flash it to a USB stick, boot it, and try JARVIS before you install.</p>
+          <div class="dl-buttons">
+            <a href={iso.browser_download_url} class="btn btn-primary">Download ISO</a>
+            <a href="/docs/building-the-iso" class="btn btn-outline">How to build it →</a>
+            <a href={os.html_url} class="btn btn-outline"
+               target="_blank" rel="noopener noreferrer">Release notes ↗</a>
+          </div>
+          {checksum && (
+            <div class="checksum-block">
+              <span class="section-label">SHA-512 checksum</span>
+              <pre class="mono checksum-pre"><code>{checksum}</code></pre>
+            </div>
+          )}
         </div>
-        <div id="checksum-block" hidden>
-          <span class="section-label">SHA-512 checksum</span>
-          <pre class="mono checksum-pre"><code id="checksum-value"></code></pre>
+      ) : (
+        <div class="card os-card">
+          <span class="tag tag-medium">Not released yet</span>
+          <h3>No ISO to download yet</h3>
+          <p>
+            You can build one on an Arch-based computer with 16&nbsp;GB of RAM and 60&nbsp;GB free.
+            The build runs end to end; booting it live and the installer are still being finished.
+          </p>
+          <div class="dl-buttons">
+            <a href="/docs/building-the-iso" class="btn btn-outline">How to build it →</a>
+            <a href={`${gh}/jarvisos/releases`} class="btn btn-outline"
+               target="_blank" rel="noopener noreferrer">Releases ↗</a>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   </section>
 </BaseLayout>
@@ -270,10 +346,6 @@ jarvis providers add --type api --model <model> --url <api url> --key <key>`}</c
     margin-top: var(--space-md);
     font-size: 0.88rem;
     color: var(--text-muted);
-  }
-
-  .btn[hidden] {
-    display: none;
   }
 
   .code {
@@ -377,7 +449,7 @@ jarvis providers add --type api --model <model> --url <api url> --key <key>`}</c
     word-break: break-all;
   }
 
-  #checksum-block {
+  .checksum-block {
     margin-top: var(--space-xl);
   }
 
@@ -419,111 +491,4 @@ jarvis providers add --type api --model <model> --url <api url> --key <key>`}</c
       setTimeout(() => (button.textContent = "Copy"), 1600);
     });
   }
-
-  // JarvisOS: the card says there is no ISO until GitHub has a release with one.
-  async function fetchRelease() {
-    try {
-      const res = await fetch("https://api.github.com/repos/JarvisOSLinux/jarvisos/releases/latest");
-      if (!res.ok) return;
-      const data = await res.json();
-      const iso = data.assets?.find((a: any) => a.name.endsWith(".iso"));
-      if (!iso) return;
-
-      const status = document.getElementById("os-status");
-      const title = document.getElementById("os-title");
-      const body = document.getElementById("os-body");
-      const download = document.getElementById("os-download") as HTMLAnchorElement | null;
-      const releases = document.getElementById("os-releases") as HTMLAnchorElement | null;
-      const published = new Date(data.published_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      if (status) status.textContent = `Released ${published}`;
-      if (title) title.textContent = data.name || data.tag_name;
-      if (body) body.textContent = "Flash it to a USB stick, boot it, and try JARVIS before you install.";
-      if (download) {
-        download.href = iso.browser_download_url;
-        download.hidden = false;
-      }
-      if (releases) {
-        releases.href = data.html_url;
-        releases.textContent = "Release notes ↗";
-      }
-      loadChecksum(data, iso.name);
-    } catch {
-      /* the static "not released yet" card stays */
-    }
-  }
-
-  // Show the ISO's SHA-512 from a checksum asset (<name>.sha512 or SHA512SUMS*),
-  // or failing that from the release notes. Best effort; never throws.
-  async function loadChecksum(data: any, isoName: string) {
-    try {
-      const block = document.getElementById("checksum-block");
-      const valueEl = document.getElementById("checksum-value");
-      if (!block || !valueEl) return;
-      const SHA512_RE = /\b[0-9a-fA-F]{128}\b/;
-      const show = (hex: string) => {
-        valueEl.textContent = hex;
-        block.hidden = false;
-      };
-      const sumAsset = data.assets?.find(
-        (a: any) =>
-          a.name.toLowerCase().endsWith(".sha512") || a.name.toUpperCase().startsWith("SHA512SUMS")
-      );
-      if (sumAsset) {
-        try {
-          const res = await fetch(sumAsset.browser_download_url);
-          if (res.ok) {
-            const lines = (await res.text()).trim().split("\n");
-            const line = lines.find((l) => l.includes(isoName)) || lines[0];
-            const hex = line?.match(SHA512_RE)?.[0];
-            if (hex) return show(hex);
-          }
-        } catch {
-          /* fall through to the release notes */
-        }
-      }
-      const bodyHex = data.body?.match(SHA512_RE)?.[0];
-      if (bodyHex) show(bodyHex);
-    } catch {
-      /* best effort */
-    }
-  }
-
-  // Desktop app: one button per platform from the latest release's assets.
-  // Filenames carry the version, so a new release needs no site change.
-  async function fetchAppRelease() {
-    const tagEl = document.getElementById("app-release-tag");
-    try {
-      const res = await fetch("https://api.github.com/repos/JarvisOSLinux/jarvis-app/releases/latest");
-      if (!res.ok) throw new Error("no release");
-      const data = await res.json();
-      if (tagEl) tagEl.textContent = `Latest: ${data.tag_name}`;
-      const buttons = document.getElementById("app-buttons");
-      if (!buttons) return;
-      const groups: Array<[string, (n: string) => boolean]> = [
-        ["Windows", (n) => n.endsWith("-setup.exe") || n.endsWith(".msi")],
-        ["macOS", (n) => n.endsWith(".dmg")],
-        ["Linux (rpm)", (n) => n.endsWith(".rpm")],
-        ["Linux (deb)", (n) => n.endsWith(".deb")],
-        ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
-      ];
-      for (const [label, match] of groups) {
-        const asset = data.assets?.find((a: any) => match(a.name));
-        if (!asset) continue;
-        const a = document.createElement("a");
-        a.href = asset.browser_download_url;
-        a.className = "btn btn-primary";
-        a.textContent = label;
-        buttons.prepend(a);
-      }
-    } catch {
-      if (tagEl) tagEl.textContent = "See the releases on GitHub.";
-    }
-  }
-
-  fetchRelease();
-  fetchAppRelease();
 </script>
