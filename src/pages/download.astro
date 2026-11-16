@@ -4,248 +4,366 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 const downloadSchema = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "JARVIS OS",
+  name: "JARVIS",
   operatingSystem: "Linux",
-  applicationCategory: "OperatingSystem",
+  applicationCategory: "UtilitiesApplication",
   description:
-    "Bootable Arch Linux ISO with local LLM inference, KDE Plasma 6, MCP orchestration layer, and the JARVIS AI assistant daemon. Purpose-built for LLM security research.",
-  url: "https://jarvisoslinux.org",
-  downloadUrl: "https://jarvisoslinux.org/download",
+    "An AI for your Linux computer: tell it what you want and it works out the steps, installs the tools it needs and asks before anything risky. Free and open source, with local or cloud models.",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  url: "https://jarvisoslinux.org/download",
   author: {
     "@type": "Organization",
     name: "JarvisOSLinux",
     url: "https://github.com/JarvisOSLinux",
   },
 });
+
+const gh = "https://github.com/JarvisOSLinux";
 ---
 
 <BaseLayout
-  title="Download JARVIS"
-  description="Get JARVIS three ways: the desktop app for Linux, macOS and Windows, the JARVIS daemon with its terminal UI, or JarvisOS built from source."
+  title="Get JARVIS"
+  description="Install JARVIS on the Linux you already have in four steps: its helpers, JARVIS itself, a model (local with llama.cpp, or any OpenAI-compatible API), then ask. Plus the desktop app, phone access and JarvisOS."
 >
   <script slot="head" type="application/ld+json" set:html={downloadSchema} />
-  <section class="section">
+
+  <section class="section dl-hero">
     <div class="container">
-      <span class="section-label">Download</span>
-      <h1 class="section-title">Get JARVIS</h1>
-      <p class="dl-intro">
-        Three ways in. Install the <strong>JARVIS daemon</strong> on the Linux you already run
-        and use its terminal UI, add the <strong>desktop app</strong> for a window, or build{" "}
-        <strong>JarvisOS</strong>, the whole system preconfigured on Arch Linux. The app, the
-        terminal and your phone all talk to the same daemon.
+      <span class="section-label">Get JARVIS</span>
+      <h1 class="section-title">Four steps to your first ask.</h1>
+      <p class="section-lede">
+        JARVIS runs on the Linux you already have. Paste these into a terminal: they install
+        JARVIS, give it a model and open a chat. Free, open source, and no account to make.
+      </p>
+      <p class="dl-needs mono">
+        You need: Linux · Python 3.10 or newer · git and curl
+      </p>
+      <p class="dl-jump">
+        Rather have a window? <a href="#app">The desktop app</a>. A whole system with JARVIS
+        built in? <a href="#jarvisos">JarvisOS</a>.
       </p>
     </div>
   </section>
 
-  <!-- JarvisOS — latest ISO release (populated by GitHub API at runtime) -->
-  <section class="section" style="padding-top: 0;" id="jarvisos">
+  <section class="section section--flush-top" id="daemon">
     <div class="container">
-      <span class="section-label">JarvisOS</span>
-      <h2 class="section-title">The full system</h2>
-      <div class="card release-card glow-border" id="latest-release">
-        <div class="release-header">
-          <span class="tag tag-medium">Latest Release</span>
-          <span class="mono text-muted" id="release-date">Loading...</span>
-        </div>
-        <h2 id="release-tag" style="margin-top: var(--space-md);">Checking for an ISO&hellip;</h2>
-        <p id="release-body" style="margin-top: var(--space-sm);">
-          Asking GitHub for the latest JarvisOS release.
+      <ol class="steps">
+        <li class="step">
+          <div class="step-copy">
+            <span class="step-n mono">1</span>
+            <h2>Its three helpers</h2>
+            <p>
+              JARVIS hands the work to three small programs: <strong>dispatch</strong> runs
+              tools side by side, <strong>dmcp</strong> installs and starts them, and{" "}
+              <strong>contextor</strong> remembers. This puts them in{" "}
+              <code>~/.local/bin</code>.
+            </p>
+            <p class="step-note">
+              Not on an x86-64 PC? Build them with Rust instead:{" "}
+              <code>cargo install --git {gh}/dispatch</code>, then the same for dmcp and
+              contextor.
+            </p>
+          </div>
+          <div class="code" data-code>
+            <div class="code-bar mono"><span>Terminal</span><button class="code-copy" type="button">Copy</button></div>
+            <pre><code>{`mkdir -p ~/.local/bin
+for t in dispatch dmcp contextor; do
+  curl -fL -o ~/.local/bin/$t \\
+    ${gh}/$t/releases/latest/download/$t-linux-x86_64
+  chmod +x ~/.local/bin/$t
+done`}</code></pre>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-copy">
+            <span class="step-n mono">2</span>
+            <h2>JARVIS itself</h2>
+            <p>
+              From source, in its own Python environment, with the terminal UI. The last line
+              lets you type <code>jarvis</code> from anywhere.
+            </p>
+            <p class="step-note">
+              Shell says <code>jarvis: command not found</code>? Add{" "}
+              <code>export PATH="$HOME/.local/bin:$PATH"</code> to <code>~/.bashrc</code> and
+              open a new terminal. Why not <code>pip install project-jarvis</code>? PyPI has
+              2.0.0 from August, before local models, phone access and the root-command guards.
+            </p>
+          </div>
+          <div class="code" data-code>
+            <div class="code-bar mono"><span>Terminal</span><button class="code-copy" type="button">Copy</button></div>
+            <pre><code>{`git clone ${gh}/Project-JARVIS.git
+cd Project-JARVIS
+python -m venv .venv
+.venv/bin/pip install -e ".[tui]"
+ln -sf "$PWD/.venv/bin/jarvis" ~/.local/bin/jarvis`}</code></pre>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-copy">
+            <span class="step-n mono">3</span>
+            <h2>A model</h2>
+            <p>
+              Free and private: a model that runs on your computer through llama.cpp. JARVIS
+              downloads it, about 2.5&nbsp;GB, the first time it starts. Or use any
+              OpenAI-compatible API with your own key.
+            </p>
+            <p class="step-note">
+              Keep llama.cpp even with a hosted model. JARVIS runs a small local model with it
+              to find tools and search its memory; without it, it finds tools by keyword.
+            </p>
+          </div>
+          <div class="code" data-code>
+            <div class="code-bar mono"><span>Terminal</span><button class="code-copy" type="button">Copy</button></div>
+            <pre><code>{`sudo pacman -S llama-cpp   # Arch; elsewhere, llama.cpp's own builds
+jarvis providers add --type llamacpp --model Qwen/Qwen3-4B-GGUF:Q4_K_M
+
+# or a hosted model
+jarvis providers add --type api --model <model> --url <api url> --key <key>`}</code></pre>
+          </div>
+        </li>
+
+        <li class="step">
+          <div class="step-copy">
+            <span class="step-n mono">4</span>
+            <h2>Ask</h2>
+            <p>
+              Type what you want. When JARVIS needs a tool it doesn't have yet, it finds one in
+              the <a href="/servers">registry</a> and installs it. Anything risky waits for
+              your OK.
+            </p>
+          </div>
+          <div class="code" data-code>
+            <div class="code-bar mono"><span>Terminal</span><button class="code-copy" type="button">Copy</button></div>
+            <pre><code>jarvis tui</code></pre>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--band" id="app">
+    <div class="container more-ways">
+      <div class="more-way">
+        <span class="section-label">A window</span>
+        <h2>The desktop app</h2>
+        <p>
+          Chat, approvals, sessions, settings and providers in a window. It talks to JARVIS on
+          this computer, so do the four steps first.
         </p>
-        <div class="release-actions" style="margin-top: var(--space-xl);">
-          <a href="#" class="btn btn-primary" id="download-btn" style="display: none;">
-            Download ISO
-          </a>
-          <a href="#" class="btn btn-outline" id="release-link" style="display: none;">
-            Release notes &nearr;
-          </a>
+        <p class="mono text-muted dl-release" id="app-release-tag">Checking the latest release&hellip;</p>
+        <div class="dl-buttons" id="app-buttons">
+          <a href={`${gh}/jarvis-app/releases/latest`} class="btn btn-outline"
+             target="_blank" rel="noopener noreferrer">All downloads ↗</a>
         </div>
-        <div id="checksum-block" style="display: none; margin-top: var(--space-xl);">
-          <span class="section-label">SHA-512 Checksum</span>
+        <p class="step-note">
+          Builds are unsigned for now: Windows SmartScreen warns (More info → Run anyway) and
+          macOS needs right-click → Open the first time. The macOS build is Apple silicon only.
+          Linux needs WebKitGTK&nbsp;4.1.
+        </p>
+      </div>
+
+      <div class="more-way" id="phone">
+        <span class="section-label">Your phone</span>
+        <h2>JARVIS in your pocket</h2>
+        <p>
+          <code>jarvis web</code> serves the same app to your phone over Tailscale, your own
+          private network. Only the people you allow get in, and guests can chat but can't
+          approve anything.
+        </p>
+        <div class="dl-buttons">
+          <a href={`${gh}/Project-JARVIS/blob/main/docs/web-gateway.md`} class="btn btn-outline"
+             target="_blank" rel="noopener noreferrer">How to set it up ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="jarvisos">
+    <div class="container os-grid">
+      <div>
+        <span class="section-label">The whole system</span>
+        <h2 class="section-title">JarvisOS</h2>
+        <p class="section-lede">
+          Arch Linux with JARVIS built in: CachyOS underneath, KDE Plasma 6 on top, JARVIS
+          installed, and its own kernel with a <code>/dev/jarvis</code> device, so the system
+          itself can talk to the AI.
+        </p>
+      </div>
+      <div class="card os-card" id="os-release">
+        <span class="tag tag-medium" id="os-status">Not released yet</span>
+        <h3 id="os-title">No ISO to download yet</h3>
+        <p id="os-body">
+          You can build one on an Arch-based computer with 16&nbsp;GB of RAM and 60&nbsp;GB free.
+          The build runs end to end; booting it live and the installer are still being finished.
+        </p>
+        <div class="dl-buttons">
+          <a href="#" class="btn btn-primary" id="os-download" hidden>Download ISO</a>
+          <a href="/docs/building-the-iso" class="btn btn-outline" id="os-build">How to build it →</a>
+          <a href={`${gh}/jarvisos/releases`} class="btn btn-outline" id="os-releases"
+             target="_blank" rel="noopener noreferrer">Releases ↗</a>
+        </div>
+        <div id="checksum-block" hidden>
+          <span class="section-label">SHA-512 checksum</span>
           <pre class="mono checksum-pre"><code id="checksum-value"></code></pre>
         </div>
-      </div>
-
-      <!-- Fallback if no releases -->
-      <noscript>
-        <div class="card" style="margin-top: var(--space-lg);">
-          <p>
-            JavaScript is required to fetch the latest release from GitHub. You can also
-            browse releases directly at{" "}
-            <a href="https://github.com/JarvisOSLinux/jarvisos/releases" target="_blank" rel="noopener noreferrer">
-              github.com/JarvisOSLinux/jarvisos/releases</a>.
-          </p>
-        </div>
-      </noscript>
-    </div>
-  </section>
-
-  <!-- Jarvis App — desktop app releases (populated by GitHub API at runtime) -->
-  <section class="section" id="app">
-    <div class="container">
-      <span class="section-label">Jarvis App</span>
-      <h2 class="section-title">The desktop app</h2>
-      <div class="card release-card glow-border">
-        <div class="release-header">
-          <span class="tag tag-medium">Latest Release</span>
-          <span class="mono text-muted" id="app-release-tag">Loading&hellip;</span>
-        </div>
-        <p style="margin-top: var(--space-md);">
-          A desktop window for the JARVIS daemon: chat, sessions, permission requests with
-          per-task approval, settings, providers and desktop widgets. It needs the daemon
-          (below) or JarvisOS.
-        </p>
-        <div class="release-actions" style="margin-top: var(--space-xl);" id="app-buttons">
-          <a href="https://github.com/JarvisOSLinux/jarvis-app/releases/latest" class="btn btn-outline"
-             target="_blank" rel="noopener noreferrer">All downloads &nearr;</a>
-        </div>
-        <p class="text-muted" style="margin-top: var(--space-lg); font-size: 0.9rem;">
-          Builds are currently unsigned: Windows SmartScreen warns (&ldquo;More info &rarr;
-          Run anyway&rdquo;) and macOS needs right-click &rarr; Open on first launch. The
-          macOS build is Apple silicon only for now. Linux needs WebKitGTK&nbsp;4.1.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Jarvis CLI/TUI — the daemon itself -->
-  <section class="section" id="daemon">
-    <div class="container">
-      <span class="section-label">The daemon</span>
-      <h2 class="section-title">JARVIS on the Linux you run</h2>
-      <div class="card release-card glow-border">
-        <p>
-          Project-JARVIS is the brain: the model, the confirmation gate, finding and running
-          tools, voice, the terminal UI and the phone gateway. Install it from source, then
-          give it a model, local or any OpenAI-compatible API:
-        </p>
-        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>git clone https://github.com/JarvisOSLinux/Project-JARVIS.git
-cd Project-JARVIS && pip install -e ".[tui]"
-
-# a model on this machine (needs llama.cpp's llama-server) ...
-jarvis providers add --type llamacpp --model Qwen/Qwen3-4B-GGUF:Q4_K_M
-# ... or any OpenAI-compatible API
-jarvis providers add --type api --model &lt;model&gt; --url &lt;api url&gt; --key &lt;key&gt;
-
-jarvis tui</code></pre>
-        <p class="text-muted" style="margin-top: var(--space-md); font-size: 0.9rem;">
-          PyPI's <code>project-jarvis</code> is the last release, 2.0.0 from August 2026. It
-          predates local models through llama.cpp, phone control and the root-command guards,
-          so install from source for what this site describes.
-        </p>
-        <div class="release-actions" style="margin-top: var(--space-xl);">
-          <a href="https://github.com/JarvisOSLinux/Project-JARVIS" class="btn btn-primary"
-             target="_blank" rel="noopener noreferrer">Source &amp; docs &nearr;</a>
-          <a href="https://pypi.org/project/project-jarvis/" class="btn btn-outline"
-             target="_blank" rel="noopener noreferrer">PyPI (2.0.0) &nearr;</a>
-        </div>
-        <p class="text-muted" style="margin-top: var(--space-lg); font-size: 0.9rem;">
-          Linux is the reference platform. Windows and macOS are supported in beta
-          (Python 3.11&ndash;3.13 recommended); tool servers from the MCP registry are
-          mostly Linux-only today.
-        </p>
-      </div>
-      <div class="card" style="margin-top: var(--space-lg);">
-        <h3>Sidecars</h3>
-        <p>
-          The daemon orchestrates three small Rust binaries. They install with JarvisOS and
-          build with <code>cargo</code>; prebuilt per-OS binaries live on each repo&rsquo;s
-          releases page:
-          <a href="https://github.com/JarvisOSLinux/dispatch/releases" target="_blank" rel="noopener noreferrer">dispatch</a> (task orchestrator) &middot;
-          <a href="https://github.com/JarvisOSLinux/dmcp/releases" target="_blank" rel="noopener noreferrer">dmcp</a> (MCP server manager) &middot;
-          <a href="https://github.com/JarvisOSLinux/contextor/releases" target="_blank" rel="noopener noreferrer">contextor</a> (long-term memory).
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Install instructions -->
-  <section class="section">
-    <div class="container">
-      <span class="section-label">Getting Started</span>
-      <h2 class="section-title">Installing JarvisOS</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>1. Boot from USB</h3>
-          <p>
-            Flash the ISO to a USB drive using <code>dd</code>, Ventoy, or Balena Etcher.
-            Boot from the USB and you'll land in the live environment.
-          </p>
-          <pre class="mono install-cmd"><code>sudo dd if=jarvisos-*.iso of=/dev/sdX bs=4M status=progress</code></pre>
-        </div>
-        <div class="card">
-          <h3>2. Live Environment</h3>
-          <p>
-            The live session gives you a fully functional JARVIS OS with KDE Plasma 6.
-            Test the AI features, explore the system, and run the <code>jarvis</code> CLI.
-          </p>
-        </div>
-        <div class="card">
-          <h3>3. Install to Disk</h3>
-          <p>
-            Launch the Calamares installer from the desktop for a guided installation
-            to your hard drive — automatic partitioning, user setup, and bootloader
-            configuration included.
-          </p>
-        </div>
-        <div class="card">
-          <h3>4. Virtual Machine</h3>
-          <p>
-            JARVIS OS runs well in VirtualBox or QEMU/KVM. Allocate at least 4 GB RAM
-            and 20 GB disk for comfortable usage with local LLM inference.
-          </p>
-          <pre class="mono install-cmd"><code>qemu-system-x86_64 -m 4G -smp 4 -cdrom jarvisos-*.iso</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Mirrors / source -->
-  <section class="section">
-    <div class="container">
-      <span class="section-label" id="build">Source</span>
-      <h2 class="section-title">Build from source</h2>
-      <div class="card">
-        <p>
-          JARVIS OS is fully open source. Clone the build system and run the nine-script
-          pipeline to produce your own ISO from scratch.
-        </p>
-        <pre class="mono install-cmd" style="margin-top: var(--space-md);"><code>git clone https://github.com/JarvisOSLinux/jarvisos.git
-cd jarvisos
-sudo ./01-*.sh   # begin the build pipeline</code></pre>
-        <a
-          href="https://github.com/JarvisOSLinux/jarvisos"
-          class="btn btn-outline"
-          style="margin-top: var(--space-lg);"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View on GitHub &nearr;
-        </a>
       </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  .dl-intro {
-    font-size: 1.05rem;
-    max-width: 640px;
+  .dl-hero .section-lede {
+    max-width: 620px;
   }
 
-  .release-card {
+  .dl-needs {
+    margin-top: var(--space-lg);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .dl-jump {
+    margin-top: var(--space-sm);
+    color: var(--text-secondary);
+  }
+
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-3xl);
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-2xl);
+    align-items: start;
+  }
+
+  .step-copy h2 {
+    font-size: 1.6rem;
+    margin: var(--space-sm) 0 var(--space-sm);
+  }
+
+  .step-copy p {
+    color: var(--text-secondary);
+  }
+
+  .step-n {
+    display: inline-grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-glow);
+    background: #00c8ff14;
+    color: var(--cyan);
+    font-size: 1rem;
+  }
+
+  .step-copy .step-note,
+  .more-way .step-note {
+    margin-top: var(--space-md);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .btn[hidden] {
+    display: none;
+  }
+
+  .code {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .code pre {
+    margin: 0;
+    padding: var(--space-md) var(--space-lg) var(--space-lg);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+  }
+
+  .code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem 0.5rem 0.35rem var(--space-lg);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .code-copy {
+    padding: 0.2rem 0.7rem;
+    font: inherit;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .code-copy:hover,
+  .code-copy:focus-visible {
+    color: var(--cyan);
+    border-color: var(--border-glow);
+  }
+
+  .more-ways {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3xl);
+  }
+
+  .more-way h2 {
+    font-size: 1.8rem;
+    margin: var(--space-sm) 0 var(--space-md);
+  }
+
+  .more-way > p {
+    color: var(--text-secondary);
+  }
+
+  .dl-release {
+    margin-top: var(--space-lg);
+    font-size: 0.85rem;
+  }
+
+  .dl-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  .os-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3xl);
+    align-items: center;
+  }
+
+  .os-card {
     padding: var(--space-2xl);
   }
 
-  .release-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-  }
-
-  .release-actions {
-    display: flex;
-    gap: var(--space-md);
-    flex-wrap: wrap;
+  .os-card h3 {
+    font-size: 1.4rem;
+    margin: var(--space-md) 0 var(--space-sm);
   }
 
   .checksum-pre {
@@ -259,133 +377,138 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
     word-break: break-all;
   }
 
-  .install-cmd {
-    margin-top: var(--space-md);
-    padding: var(--space-md);
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    font-size: 0.8rem;
-    overflow-x: auto;
+  #checksum-block {
+    margin-top: var(--space-xl);
+  }
+
+  @media (max-width: 860px) {
+    .step,
+    .more-ways,
+    .os-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .step {
+      gap: var(--space-lg);
+    }
+
+    .steps {
+      gap: var(--space-2xl);
+    }
   }
 </style>
 
 <script>
+  // Copy buttons: copy the block's text and say so for a moment.
+  for (const block of document.querySelectorAll<HTMLElement>("[data-code]")) {
+    const button = block.querySelector<HTMLButtonElement>(".code-copy");
+    const code = block.querySelector("code");
+    if (!button || !code) continue;
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent ?? "");
+        button.textContent = "Copied";
+      } catch {
+        // No clipboard access: select the text so Ctrl+C copies it.
+        const range = document.createRange();
+        range.selectNodeContents(code);
+        getSelection()?.removeAllRanges();
+        getSelection()?.addRange(range);
+        button.textContent = "Selected";
+      }
+      setTimeout(() => (button.textContent = "Copy"), 1600);
+    });
+  }
+
+  // JarvisOS: the card says there is no ISO until GitHub has a release with one.
   async function fetchRelease() {
     try {
-      const res = await fetch(
-        "https://api.github.com/repos/JarvisOSLinux/jarvisos/releases/latest"
-      );
-      if (!res.ok) throw new Error("No releases found");
+      const res = await fetch("https://api.github.com/repos/JarvisOSLinux/jarvisos/releases/latest");
+      if (!res.ok) return;
       const data = await res.json();
-
-      const tagEl = document.getElementById("release-tag");
-      const dateEl = document.getElementById("release-date");
-      const bodyEl = document.getElementById("release-body");
-      const dlBtn = document.getElementById("download-btn") as HTMLAnchorElement;
-      const rlBtn = document.getElementById("release-link") as HTMLAnchorElement;
-
-      if (tagEl) tagEl.textContent = data.name || data.tag_name;
-      if (dateEl)
-        dateEl.textContent = new Date(data.published_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-      if (bodyEl) bodyEl.textContent = data.body?.slice(0, 300) || "No description.";
-
-      // Find ISO asset
       const iso = data.assets?.find((a: any) => a.name.endsWith(".iso"));
-      if (iso && dlBtn) {
-        dlBtn.href = iso.browser_download_url;
-        dlBtn.style.display = "inline-flex";
-      }
+      if (!iso) return;
 
-      if (rlBtn) {
-        rlBtn.href = data.html_url;
-        rlBtn.style.display = "inline-flex";
+      const status = document.getElementById("os-status");
+      const title = document.getElementById("os-title");
+      const body = document.getElementById("os-body");
+      const download = document.getElementById("os-download") as HTMLAnchorElement | null;
+      const releases = document.getElementById("os-releases") as HTMLAnchorElement | null;
+      const published = new Date(data.published_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      if (status) status.textContent = `Released ${published}`;
+      if (title) title.textContent = data.name || data.tag_name;
+      if (body) body.textContent = "Flash it to a USB stick, boot it, and try JARVIS before you install.";
+      if (download) {
+        download.href = iso.browser_download_url;
+        download.hidden = false;
       }
-
-      // Fire-and-forget: a checksum failure must never break the release UI
-      loadChecksum(data, iso?.name ?? null);
+      if (releases) {
+        releases.href = data.html_url;
+        releases.textContent = "Release notes ↗";
+      }
+      loadChecksum(data, iso.name);
     } catch {
-      const tagEl = document.getElementById("release-tag");
-      const bodyEl = document.getElementById("release-body");
-      const dateEl = document.getElementById("release-date");
-      if (tagEl) tagEl.textContent = "Build it from source for now";
-      if (dateEl) dateEl.textContent = "No ISO published yet";
-      if (bodyEl)
-        bodyEl.innerHTML =
-          'There is no prebuilt ISO yet. The pipeline under <a href="#build">Build from source</a> produces one; published ISOs will appear on <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a>.';
+      /* the static "not released yet" card stays */
     }
   }
 
-  // Populate #checksum-block from the release: prefer a dedicated checksum
-  // asset (<name>.sha512 / SHA512SUMS*), fall back to a 128-hex digest in the
-  // release notes. Leaves the block hidden when neither exists. Never throws.
-  async function loadChecksum(data: any, isoName: string | null) {
+  // Show the ISO's SHA-512 from a checksum asset (<name>.sha512 or SHA512SUMS*),
+  // or failing that from the release notes. Best effort; never throws.
+  async function loadChecksum(data: any, isoName: string) {
     try {
       const block = document.getElementById("checksum-block");
       const valueEl = document.getElementById("checksum-value");
       if (!block || !valueEl) return;
-
       const SHA512_RE = /\b[0-9a-fA-F]{128}\b/;
       const show = (hex: string) => {
         valueEl.textContent = hex;
-        block.style.display = "block";
+        block.hidden = false;
       };
-
       const sumAsset = data.assets?.find(
         (a: any) =>
-          a.name.toLowerCase().endsWith(".sha512") ||
-          a.name.toUpperCase().startsWith("SHA512SUMS")
+          a.name.toLowerCase().endsWith(".sha512") || a.name.toUpperCase().startsWith("SHA512SUMS")
       );
       if (sumAsset) {
         try {
           const res = await fetch(sumAsset.browser_download_url);
           if (res.ok) {
             const lines = (await res.text()).trim().split("\n");
-            const line =
-              (isoName && lines.find((l) => l.includes(isoName))) || lines[0];
+            const line = lines.find((l) => l.includes(isoName)) || lines[0];
             const hex = line?.match(SHA512_RE)?.[0];
-            if (hex) {
-              show(hex);
-              return;
-            }
+            if (hex) return show(hex);
           }
         } catch {
-          /* fall through to release-body scan */
+          /* fall through to the release notes */
         }
       }
-
       const bodyHex = data.body?.match(SHA512_RE)?.[0];
       if (bodyHex) show(bodyHex);
     } catch {
-      /* checksum display is best-effort; block stays hidden */
+      /* best effort */
     }
   }
 
-  // Jarvis App: same latest-release pattern as the ISO card, with per-OS
-  // asset buttons matched by filename. Filenames carry the version, so
-  // fetching latest keeps links fresh without a site redeploy.
+  // Desktop app: one button per platform from the latest release's assets.
+  // Filenames carry the version, so a new release needs no site change.
   async function fetchAppRelease() {
     const tagEl = document.getElementById("app-release-tag");
     try {
-      const res = await fetch(
-        "https://api.github.com/repos/JarvisOSLinux/jarvis-app/releases/latest"
-      );
-      if (!res.ok) throw new Error("No releases found");
+      const res = await fetch("https://api.github.com/repos/JarvisOSLinux/jarvis-app/releases/latest");
+      if (!res.ok) throw new Error("no release");
       const data = await res.json();
-      if (tagEl) tagEl.textContent = data.name || data.tag_name;
-
+      if (tagEl) tagEl.textContent = `Latest: ${data.tag_name}`;
       const buttons = document.getElementById("app-buttons");
       if (!buttons) return;
       const groups: Array<[string, (n: string) => boolean]> = [
         ["Windows", (n) => n.endsWith("-setup.exe") || n.endsWith(".msi")],
         ["macOS", (n) => n.endsWith(".dmg")],
-        ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
-        ["Linux (deb)", (n) => n.endsWith(".deb")],
         ["Linux (rpm)", (n) => n.endsWith(".rpm")],
+        ["Linux (deb)", (n) => n.endsWith(".deb")],
+        ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
       ];
       for (const [label, match] of groups) {
         const asset = data.assets?.find((a: any) => match(a.name));
@@ -397,7 +520,7 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
         buttons.prepend(a);
       }
     } catch {
-      if (tagEl) tagEl.textContent = "see GitHub";
+      if (tagEl) tagEl.textContent = "See the releases on GitHub.";
     }
   }
 
