@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import registry from "../data/servers.json";
-import { serverCopy } from "../data/server-copy";
 
 type Server = (typeof registry.servers)[number];
 
@@ -30,9 +29,11 @@ const firstSentence = (text: string) => {
   return line + ".";
 };
 
+// The registry's copy for people (mcp-registry#137); an entry from before it
+// falls back to the model's name and summary.
 const describe = (s: Server) => ({
-  name: serverCopy[s.id]?.name ?? s.name.replace(/^JARVIS /, "").replace(/\s*(—.*|-?MCP)$/, ""),
-  line: serverCopy[s.id]?.line ?? firstSentence(s.summary),
+  name: s.title ?? s.name.replace(/^JARVIS /, "").replace(/\s*(—.*|-?MCP)$/, ""),
+  line: s.tagline ?? firstSentence(s.summary),
 });
 
 const asks = (s: Server) => s.tools.elevated + s.tools.dangerous + s.tools.forbidden;

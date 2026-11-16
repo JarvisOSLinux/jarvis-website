@@ -38,10 +38,12 @@ preset, so run `npx astro check` if you want type diagnostics — it isn't wired
   limit.
 - **The one build-time fetch is the tool list.** `scripts/sync-servers.mjs` (npm `prebuild`, or
   `npm run sync-servers`) reads the mcp-registry's `registry.json` and each manifest and writes
-  `src/data/servers.json`: every server but the test fixtures, calculator examples and deprecated
-  entries, with its tools counted by threat level. Offline it keeps the committed file. `/servers`
-  and the home page's count read it; `src/data/server-copy.ts` holds each server's plain-English
-  name and line (a server missing there falls back to its registry name and summary).
+  `src/data/servers.json`: every server but the fixtures (`fixture: true`) and deprecated or
+  removed entries, with its `title` and `tagline` (the registry's copy for people,
+  mcp-registry#137) and its tools counted by threat level. Offline it keeps the committed file;
+  `JARVIS_REGISTRY_URL` points it at another `registry.json`. `/servers` and the home page's count
+  read it. Nothing about a server is written here: a new or changed entry reaches the site at the
+  next build.
 - Styling is a single global stylesheet (`src/styles/global.css`) with CSS custom properties — no
   component-scoped styling system, no Tailwind.
 - **Deployment is a bare-metal VPS via rsync + SSH, not GitHub Pages** — despite the org name, there

@@ -1,36 +1,23 @@
 // Writes src/data/servers.json, the list /servers shows, from the JARVIS MCP
-// registry: each server's name, summary and category, and how many of its
-// tools run on their own and how many wait for the user, read from its
-// manifest's threat levels. Runs before every build (npm's prebuild). Offline,
-// or with GitHub failing, it keeps the file already there, so a build never
-// depends on the network.
+// registry: each server's title and tagline (the registry's copy for people),
+// its category, and how many of its tools run on their own and how many wait
+// for the user, read from its manifest's threat levels. Test fixtures and
+// revoked entries are left out. Runs before every build (npm's prebuild).
+// Offline, or with GitHub failing, it keeps the file already there, so a build
+// never depends on the network. JARVIS_REGISTRY_URL points it at another
+// registry.json, such as a branch under review.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const REGISTRY =
+  process.env.JARVIS_REGISTRY_URL ||
   "https://raw.githubusercontent.com/JarvisOSLinux/mcp-registry/main/registry.json";
 const OUT = new URL("../src/data/servers.json", import.meta.url);
 
-// Servers the registry carries for testing JARVIS and dmcp, and the
-// calculator examples for server authors; nobody installs them to get
-// something done. Until the registry marks them itself (mcp-registry#133).
-const NOT_FOR_USERS = [
-  "hello-config",
-  "hello-sse",
-  "hello-ws",
-  "slow-mcp",
-  "exit-mcp",
-  "poison-mcp",
-  "identity-mcp",
-  "calculator-py",
-  "calculator-rust",
-  "calculator-ts",
-];
-
-const forUsers = (id, entry) =>
-  entry.trustStatus !== "deprecated" &&
-  !entry.test &&
-  !(entry.categories ?? []).includes("testing") &&
-  !NOT_FOR_USERS.some((name) => id.endsWith(`.${name}`));
+// The registry's test fixtures and calculator examples carry `fixture`, and a
+// deprecated or removed entry is on its way out; neither is for someone
+// looking for a tool.
+const listed = (entry) =>
+  entry.fixture !== true && !["deprecated", "removed"].includes(entry.trustStatus);
 
 async function json(url) {
   const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
@@ -49,12 +36,14 @@ function toolLevels(manifest) {
 
 async function sync() {
   const registry = await json(REGISTRY);
-  const entries = Object.entries(registry.servers).filter(([id, e]) => forUsers(id, e));
+  const entries = Object.entries(registry.servers).filter(([, e]) => listed(e));
   const servers = await Promise.all(
     entries.map(async ([id, e]) => ({
       id,
       name: e.name,
       summary: e.summary,
+      title: e.title,
+      tagline: e.tagline,
       category: (e.categories ?? ["other"])[0],
       trust: e.trustStatus,
       scope: e.scope,
