@@ -31,11 +31,14 @@ preset, so run `npx astro check` if you want type diagnostics — it isn't wired
   page via `<slot />`; page-specific `<script slot="head" type="application/ld+json">` adds per-page
   schema.org JSON-LD.
 - Reusable pieces live in `src/components/` (`Nav`, `Footer`, `SubsystemCard`, `ThreatCard`).
-- **GitHub API calls are client-side, not build-time**: `download.astro` and `contributors.astro`
-  fetch `api.github.com` from a plain `<script>` tag that runs in the visitor's browser after page
-  load (see `fetchRelease()` / `fetchContributors()`), with an inline fallback UI if the fetch fails.
-  There is no SSG-time data fetching and no GitHub token — these are unauthenticated client requests
-  subject to GitHub's anonymous rate limit.
+- **GitHub data is fetched at build time, never in the visitor's browser**: `download.astro` and
+  `contributors.astro` call `github()` (`src/lib/github.ts`) in their frontmatter, and contributor
+  avatars are inlined as data URIs. `github()` returns null when the API is unreachable or
+  rate-limited (unauthenticated, 10 s timeout), and each page renders a fallback. Release and
+  contributor data are as fresh as the last build.
+- **Fonts are self-hosted** in `public/fonts/` (Google Fonts' latin + latin-ext woff2 subsets, each
+  family's `OFL.txt` beside them), declared by `@font-face` at the top of `global.css`. No page
+  makes a third-party font request.
 - Styling is a single global stylesheet (`src/styles/global.css`) with CSS custom properties — no
   component-scoped styling system, no Tailwind.
 - **Deployment is a bare-metal VPS via rsync + SSH, not GitHub Pages** — despite the org name, there

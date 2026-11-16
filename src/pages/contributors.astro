@@ -1,5 +1,38 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { github } from "../lib/github";
+
+const REPOS = ["Project-JARVIS", "dispatch", "dmcp", "contextor", "mcp-registry", "jarvisos", "jarvis-app", "linux-jarvisos", "jarvis-website"];
+
+const counts = new Map<string, { login: string; avatar: string; url: string; count: number }>();
+for (const data of await Promise.all(
+  REPOS.map((repo) => github(`repos/JarvisOSLinux/${repo}/contributors?per_page=50`))
+)) {
+  for (const c of data ?? []) {
+    if (c.type !== "User") continue;
+    const existing = counts.get(c.login);
+    if (existing) existing.count += c.contributions;
+    else counts.set(c.login, { login: c.login, avatar: c.avatar_url, url: c.html_url, count: c.contributions });
+  }
+}
+const sorted = [...counts.values()].sort((a, b) => b.count - a.count);
+
+// Avatars are inlined so the page loads nothing from GitHub; a failed one is left out.
+async function avatar(url: string): Promise<string | null> {
+  try {
+    const sized = new URL(url);
+    sized.searchParams.set("s", "128");
+    const res = await fetch(sized, { signal: AbortSignal.timeout(10_000) });
+    const type = res.headers.get("content-type") ?? "";
+    if (!res.ok || !type.startsWith("image/")) return null;
+    return `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+const contributors = await Promise.all(
+  sorted.map(async (c) => ({ ...c, avatar: await avatar(c.avatar) }))
+);
 ---
 
 <BaseLayout
@@ -64,22 +97,26 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <p style="margin-bottom: var(--space-lg);">
         Contributors across all repositories in the{" "}
         <a href="https://github.com/JarvisOSLinux" target="_blank" rel="noopener noreferrer">jarvisos</a>
-        organization, fetched live from the GitHub API.
+        organization, read from the GitHub API when this page was built.
       </p>
-      <div class="grid-4" id="contributors-grid">
-        <div class="card" style="grid-column: 1 / -1; text-align: center;">
-          <p class="mono text-muted">Loading contributors...</p>
-        </div>
+      <div class="grid-4">
+        {contributors.length > 0 ? (
+          contributors.map((c) => (
+            <a href={c.url} target="_blank" rel="noopener noreferrer" class="card contrib-card">
+              {c.avatar && <img src={c.avatar} alt={c.login} width="64" height="64" class="contrib-avatar" />}
+              <span class="contrib-name">@{c.login}</span>
+              <span class="contrib-count">{c.count} contributions</span>
+            </a>
+          ))
+        ) : (
+          <div class="card" style="grid-column: 1 / -1; text-align: center;">
+            <p class="mono text-muted">
+              Could not load contributors when this page was built.{" "}
+              <a href="https://github.com/orgs/JarvisOSLinux/people">View on GitHub</a>
+            </p>
+          </div>
+        )}
       </div>
-      <noscript>
-        <div class="card" style="margin-top: var(--space-lg);">
-          <p>
-            JavaScript is required to load contributors from GitHub. Visit the{" "}
-            <a href="https://github.com/orgs/JarvisOSLinux/people" target="_blank" rel="noopener noreferrer">
-              organization page</a> to see the full team.
-          </p>
-        </div>
-      </noscript>
     </div>
   </section>
 </BaseLayout>
@@ -130,71 +167,3 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     margin-top: var(--space-xs);
   }
 </style>
-
-<script>
-  const REPOS = ["Project-JARVIS", "dispatch", "dmcp", "contextor", "mcp-registry", "jarvisos", "jarvis-app", "linux-jarvisos", "jarvis-website"];
-
-  async function fetchContributors() {
-    const grid = document.getElementById("contributors-grid");
-    if (!grid) return;
-
-    try {
-      const allContribs = new Map<string, { login: string; avatar: string; url: string; count: number }>();
-
-      await Promise.all(
-        REPOS.map(async (repo) => {
-          try {
-            const res = await fetch(
-              `https://api.github.com/repos/JarvisOSLinux/${repo}/contributors?per_page=50`
-            );
-            if (!res.ok) return;
-            const data = await res.json();
-            for (const c of data) {
-              if (c.type !== "User") continue;
-              const existing = allContribs.get(c.login);
-              if (existing) {
-                existing.count += c.contributions;
-              } else {
-                allContribs.set(c.login, {
-                  login: c.login,
-                  avatar: c.avatar_url,
-                  url: c.html_url,
-                  count: c.contributions,
-                });
-              }
-            }
-          } catch { /* skip repo */ }
-        })
-      );
-
-      const sorted = [...allContribs.values()].sort((a, b) => b.count - a.count);
-
-      if (sorted.length === 0) {
-        grid.innerHTML = `
-          <div class="card" style="grid-column: 1 / -1; text-align: center;">
-            <p class="mono text-muted">No contributors found yet. Check back after the first release.</p>
-          </div>`;
-        return;
-      }
-
-      grid.innerHTML = sorted
-        .map(
-          (c) => `
-        <a href="${c.url}" target="_blank" rel="noopener noreferrer" class="card contrib-card">
-          <img src="${c.avatar}" alt="${c.login}" class="contrib-avatar" loading="lazy" />
-          <span class="contrib-name">@${c.login}</span>
-          <span class="contrib-count">${c.count} contributions</span>
-        </a>`
-        )
-        .join("");
-    } catch {
-      grid.innerHTML = `
-        <div class="card" style="grid-column: 1 / -1; text-align: center;">
-          <p class="mono text-muted">Could not load contributors.
-            <a href="https://github.com/orgs/JarvisOSLinux/people">View on GitHub</a></p>
-        </div>`;
-    }
-  }
-
-  fetchContributors();
-</script>

@@ -1,5 +1,50 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { github } from "../lib/github";
+
+// A dedicated checksum asset (<name>.sha512 / SHA512SUMS*) wins over a 128-hex
+// digest in the release notes; null when neither exists.
+async function findChecksum(data: any, isoName: string | null): Promise<string | null> {
+  const SHA512_RE = /\b[0-9a-fA-F]{128}\b/;
+  const sumAsset = data.assets?.find(
+    (a: any) =>
+      a.name.toLowerCase().endsWith(".sha512") || a.name.toUpperCase().startsWith("SHA512SUMS")
+  );
+  if (sumAsset) {
+    try {
+      const res = await fetch(sumAsset.browser_download_url, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) {
+        const lines = (await res.text()).trim().split("\n");
+        const line = (isoName && lines.find((l) => l.includes(isoName))) || lines[0];
+        const hex = line?.match(SHA512_RE)?.[0];
+        if (hex) return hex;
+      }
+    } catch {
+      /* fall through to the release notes */
+    }
+  }
+  return data.body?.match(SHA512_RE)?.[0] ?? null;
+}
+
+const release = await github("repos/JarvisOSLinux/jarvisos/releases/latest");
+const iso = release?.assets?.find((a: any) => a.name.endsWith(".iso"));
+const checksum = release ? await findChecksum(release, iso?.name ?? null) : null;
+
+// Per-OS buttons for the app, matched by filename, in the order the page showed them.
+const appRelease = await github("repos/JarvisOSLinux/jarvis-app/releases/latest");
+const appGroups: Array<[string, (n: string) => boolean]> = [
+  ["Linux (rpm)", (n) => n.endsWith(".rpm")],
+  ["Linux (deb)", (n) => n.endsWith(".deb")],
+  ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
+  ["macOS", (n) => n.endsWith(".dmg")],
+  ["Windows", (n) => n.endsWith("-setup.exe") || n.endsWith(".msi")],
+];
+const appButtons = appGroups.flatMap(([label, match]) => {
+  const asset = appRelease?.assets?.find((a: any) => match(a.name));
+  return asset ? [{ label, href: asset.browser_download_url }] : [];
+});
 
 const downloadSchema = JSON.stringify({
   "@context": "https://schema.org",
@@ -37,7 +82,7 @@ const downloadSchema = JSON.stringify({
     </div>
   </section>
 
-  <!-- JarvisOS — latest ISO release (populated by GitHub API at runtime) -->
+  <!-- JarvisOS — latest ISO release (read from GitHub when the site is built) -->
   <section class="section" style="padding-top: 0;" id="jarvisos">
     <div class="container">
       <span class="section-label">JarvisOS</span>
@@ -45,41 +90,47 @@ const downloadSchema = JSON.stringify({
       <div class="card release-card glow-border" id="latest-release">
         <div class="release-header">
           <span class="tag tag-medium">Latest Release</span>
-          <span class="mono text-muted" id="release-date">Loading...</span>
+          <span class="mono text-muted">
+            {release
+              ? new Date(release.published_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              : "No ISO found"}
+          </span>
         </div>
-        <h2 id="release-tag" style="margin-top: var(--space-md);">Checking for an ISO&hellip;</h2>
-        <p id="release-body" style="margin-top: var(--space-sm);">
-          Asking GitHub for the latest JarvisOS release.
-        </p>
-        <div class="release-actions" style="margin-top: var(--space-xl);">
-          <a href="#" class="btn btn-primary" id="download-btn" style="display: none;">
-            Download ISO
-          </a>
-          <a href="#" class="btn btn-outline" id="release-link" style="display: none;">
-            Release notes &nearr;
-          </a>
-        </div>
-        <div id="checksum-block" style="display: none; margin-top: var(--space-xl);">
-          <span class="section-label">SHA-512 Checksum</span>
-          <pre class="mono checksum-pre"><code id="checksum-value"></code></pre>
-        </div>
-      </div>
-
-      <!-- Fallback if no releases -->
-      <noscript>
-        <div class="card" style="margin-top: var(--space-lg);">
-          <p>
-            JavaScript is required to fetch the latest release from GitHub. You can also
-            browse releases directly at{" "}
-            <a href="https://github.com/JarvisOSLinux/jarvisos/releases" target="_blank" rel="noopener noreferrer">
-              github.com/JarvisOSLinux/jarvisos/releases</a>.
+        <h2 style="margin-top: var(--space-md);">
+          {release ? release.name || release.tag_name : "Build it from source for now"}
+        </h2>
+        {release ? (
+          <p style="margin-top: var(--space-sm);">{release.body?.slice(0, 300) || "No description."}</p>
+        ) : (
+          <p style="margin-top: var(--space-sm);">
+            No prebuilt ISO was found when this page was built. The pipeline under{" "}
+            <a href="#build">Build from source</a> produces one; published ISOs appear on{" "}
+            <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a>.
           </p>
-        </div>
-      </noscript>
+        )}
+        {release && (
+          <div class="release-actions" style="margin-top: var(--space-xl);">
+            {iso && (
+              <a href={iso.browser_download_url} class="btn btn-primary">Download ISO</a>
+            )}
+            <a href={release.html_url} class="btn btn-outline">Release notes &nearr;</a>
+          </div>
+        )}
+        {checksum && (
+          <div style="margin-top: var(--space-xl);">
+            <span class="section-label">SHA-512 Checksum</span>
+            <pre class="mono checksum-pre"><code>{checksum}</code></pre>
+          </div>
+        )}
+      </div>
     </div>
   </section>
 
-  <!-- Jarvis App — desktop app releases (populated by GitHub API at runtime) -->
+  <!-- Jarvis App — desktop app releases (read from GitHub when the site is built) -->
   <section class="section" id="app">
     <div class="container">
       <span class="section-label">Jarvis App</span>
@@ -87,14 +138,19 @@ const downloadSchema = JSON.stringify({
       <div class="card release-card glow-border">
         <div class="release-header">
           <span class="tag tag-medium">Latest Release</span>
-          <span class="mono text-muted" id="app-release-tag">Loading&hellip;</span>
+          <span class="mono text-muted">
+            {appRelease ? appRelease.name || appRelease.tag_name : "see GitHub"}
+          </span>
         </div>
         <p style="margin-top: var(--space-md);">
           A desktop window for the JARVIS daemon: chat, sessions, permission requests with
           per-task approval, settings, providers and desktop widgets. It needs the daemon
           (below) or JarvisOS.
         </p>
-        <div class="release-actions" style="margin-top: var(--space-xl);" id="app-buttons">
+        <div class="release-actions" style="margin-top: var(--space-xl);">
+          {appButtons.map((b) => (
+            <a href={b.href} class="btn btn-primary">{b.label}</a>
+          ))}
           <a href="https://github.com/JarvisOSLinux/jarvis-app/releases/latest" class="btn btn-outline"
              target="_blank" rel="noopener noreferrer">All downloads &nearr;</a>
         </div>
@@ -269,138 +325,3 @@ sudo ./01-*.sh   # begin the build pipeline</code></pre>
     overflow-x: auto;
   }
 </style>
-
-<script>
-  async function fetchRelease() {
-    try {
-      const res = await fetch(
-        "https://api.github.com/repos/JarvisOSLinux/jarvisos/releases/latest"
-      );
-      if (!res.ok) throw new Error("No releases found");
-      const data = await res.json();
-
-      const tagEl = document.getElementById("release-tag");
-      const dateEl = document.getElementById("release-date");
-      const bodyEl = document.getElementById("release-body");
-      const dlBtn = document.getElementById("download-btn") as HTMLAnchorElement;
-      const rlBtn = document.getElementById("release-link") as HTMLAnchorElement;
-
-      if (tagEl) tagEl.textContent = data.name || data.tag_name;
-      if (dateEl)
-        dateEl.textContent = new Date(data.published_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-      if (bodyEl) bodyEl.textContent = data.body?.slice(0, 300) || "No description.";
-
-      // Find ISO asset
-      const iso = data.assets?.find((a: any) => a.name.endsWith(".iso"));
-      if (iso && dlBtn) {
-        dlBtn.href = iso.browser_download_url;
-        dlBtn.style.display = "inline-flex";
-      }
-
-      if (rlBtn) {
-        rlBtn.href = data.html_url;
-        rlBtn.style.display = "inline-flex";
-      }
-
-      // Fire-and-forget: a checksum failure must never break the release UI
-      loadChecksum(data, iso?.name ?? null);
-    } catch {
-      const tagEl = document.getElementById("release-tag");
-      const bodyEl = document.getElementById("release-body");
-      const dateEl = document.getElementById("release-date");
-      if (tagEl) tagEl.textContent = "Build it from source for now";
-      if (dateEl) dateEl.textContent = "No ISO published yet";
-      if (bodyEl)
-        bodyEl.innerHTML =
-          'There is no prebuilt ISO yet. The pipeline under <a href="#build">Build from source</a> produces one; published ISOs will appear on <a href="https://github.com/JarvisOSLinux/jarvisos/releases">GitHub releases</a>.';
-    }
-  }
-
-  // Populate #checksum-block from the release: prefer a dedicated checksum
-  // asset (<name>.sha512 / SHA512SUMS*), fall back to a 128-hex digest in the
-  // release notes. Leaves the block hidden when neither exists. Never throws.
-  async function loadChecksum(data: any, isoName: string | null) {
-    try {
-      const block = document.getElementById("checksum-block");
-      const valueEl = document.getElementById("checksum-value");
-      if (!block || !valueEl) return;
-
-      const SHA512_RE = /\b[0-9a-fA-F]{128}\b/;
-      const show = (hex: string) => {
-        valueEl.textContent = hex;
-        block.style.display = "block";
-      };
-
-      const sumAsset = data.assets?.find(
-        (a: any) =>
-          a.name.toLowerCase().endsWith(".sha512") ||
-          a.name.toUpperCase().startsWith("SHA512SUMS")
-      );
-      if (sumAsset) {
-        try {
-          const res = await fetch(sumAsset.browser_download_url);
-          if (res.ok) {
-            const lines = (await res.text()).trim().split("\n");
-            const line =
-              (isoName && lines.find((l) => l.includes(isoName))) || lines[0];
-            const hex = line?.match(SHA512_RE)?.[0];
-            if (hex) {
-              show(hex);
-              return;
-            }
-          }
-        } catch {
-          /* fall through to release-body scan */
-        }
-      }
-
-      const bodyHex = data.body?.match(SHA512_RE)?.[0];
-      if (bodyHex) show(bodyHex);
-    } catch {
-      /* checksum display is best-effort; block stays hidden */
-    }
-  }
-
-  // Jarvis App: same latest-release pattern as the ISO card, with per-OS
-  // asset buttons matched by filename. Filenames carry the version, so
-  // fetching latest keeps links fresh without a site redeploy.
-  async function fetchAppRelease() {
-    const tagEl = document.getElementById("app-release-tag");
-    try {
-      const res = await fetch(
-        "https://api.github.com/repos/JarvisOSLinux/jarvis-app/releases/latest"
-      );
-      if (!res.ok) throw new Error("No releases found");
-      const data = await res.json();
-      if (tagEl) tagEl.textContent = data.name || data.tag_name;
-
-      const buttons = document.getElementById("app-buttons");
-      if (!buttons) return;
-      const groups: Array<[string, (n: string) => boolean]> = [
-        ["Windows", (n) => n.endsWith("-setup.exe") || n.endsWith(".msi")],
-        ["macOS", (n) => n.endsWith(".dmg")],
-        ["Linux (AppImage)", (n) => n.endsWith(".AppImage")],
-        ["Linux (deb)", (n) => n.endsWith(".deb")],
-        ["Linux (rpm)", (n) => n.endsWith(".rpm")],
-      ];
-      for (const [label, match] of groups) {
-        const asset = data.assets?.find((a: any) => match(a.name));
-        if (!asset) continue;
-        const a = document.createElement("a");
-        a.href = asset.browser_download_url;
-        a.className = "btn btn-primary";
-        a.textContent = label;
-        buttons.prepend(a);
-      }
-    } catch {
-      if (tagEl) tagEl.textContent = "see GitHub";
-    }
-  }
-
-  fetchRelease();
-  fetchAppRelease();
-</script>
