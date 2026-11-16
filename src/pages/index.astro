@@ -41,7 +41,7 @@ const researchSchema = JSON.stringify({
 // A few of the registry's servers, as its manifests rate their tools.
 const registry = [
   { name: "weather", what: "Forecasts and current conditions", level: "safe" },
-  { name: "currency", what: "Exchange rates from the ECB", level: "safe" },
+  { name: "currency", what: "Exchange rates from official sources", level: "safe" },
   { name: "news", what: "Headlines and topic search", level: "safe" },
   { name: "maps", what: "Places, nearby search, routes", level: "safe" },
   { name: "telegram", what: "Read and send as your bot", level: "dangerous" },
@@ -150,7 +150,7 @@ const threats = [
           the one server it picked and installs it, so even a small model stays focused.
         </p>
         <ul class="checks">
-          <li>Every server is pinned to a commit. dmcp checks the manifest's SHA-256 at install and refuses a mismatch.</li>
+          <li>Every server built from source is pinned to a commit except the GitHub wrapper, which follows the registry's main branch. dmcp checks the manifest's SHA-256 at install and refuses a mismatch.</li>
           <li>Every tool has a reviewed threat level, and the confirmation gate reads it.</li>
           <li>Settings and keys go into a form, never the chat.</li>
         </ul>
