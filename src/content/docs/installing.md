@@ -1,14 +1,15 @@
 ---
 title: Installing JARVIS OS
-description: Download the ISO, verify it, boot it, and install to disk or run in a VM.
+description: Boot a JarvisOS ISO, verify it, and install it to disk or run it in a VM.
 category: Getting Started
 order: 2
 ---
 
-The fastest way to run JARVIS OS is the pre-built ISO from the [Download page](/download), which
-always shows the latest GitHub release — including its SHA-512 checksum whenever the release
-publishes one (as a `.sha512`/`SHA512SUMS` asset or in the release notes). Verify the ISO against
-it before installing.
+There is no prebuilt ISO yet: build one with [The Build Pipeline](/docs/build-pipeline). Once a
+release carries one, the [Download page](/download) offers it with its SHA-512 checksum whenever
+the release publishes one (as a `.sha512`/`SHA512SUMS` asset or in the release notes). Verify the
+ISO against it before installing. To run JARVIS on the Linux you already have instead, follow the
+four steps on the [Download page](/download).
 
 ## 1. Boot from USB
 
@@ -44,10 +45,15 @@ qemu-system-x86_64 -m 4G -smp 4 -cdrom jarvisos-*.iso
 
 ## Prefer to build it yourself?
 
-See [The Build Pipeline](/docs/build-pipeline) to produce your own ISO from source
-instead of using the pre-built release.
+See [The Build Pipeline](/docs/build-pipeline) to produce your own ISO from source.
 
 ## Changelog — corrected claims
+
+*2026-11-15:*
+
+- "The fastest way … is the pre-built ISO" corrected: `jarvisos` has no release yet, so the page
+  now starts from building one, and points to the Download page's steps for running JARVIS on an
+  existing Linux. The Download page shows the checksum again once a release has one.
 
 *2026-07-22:*
 
