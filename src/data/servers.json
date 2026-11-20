@@ -1,6 +1,6 @@
 {
-  "updated": "2026-11-16T03:38:10Z",
-  "synced": "2026-11-16T23:58:28.299Z",
+  "updated": "2026-11-18T14:31:24Z",
+  "synced": "2026-11-20T04:13:52.112Z",
   "servers": [
     {
       "id": "io.github.ahujasid.blender-mcp",
@@ -285,7 +285,7 @@
     {
       "id": "com.github.yakupatahanov.jarvis-shell-mcp",
       "name": "JARVIS Shell",
-      "summary": "Run commands as the logged-in user on the computer JARVIS runs on, no root or password needed: quick system update checks that list available package updates (checkupdates, pacman -Qu, apt list --upgradable, dnf check-update), reading logs and service status, and running programs and scripts. Interactive commands run as named PTY jobs answerable mid-run via send_input; files, URLs and apps open in the desktop session. No sudo: applying updates, installing packages and other privileged commands go to jarvis-shell-system-mcp.",
+      "summary": "Run commands as the logged-in user on the computer JARVIS runs on, no root or password needed: quick system update checks that list available package updates (checkupdates, pacman -Qu, apt list --upgradable, dnf check-update, yay -Qua for the AUR), reading logs and service status, and running programs and scripts. Interactive commands run as named PTY jobs answerable mid-run via send_input; files, URLs and apps open in the desktop session. AUR helpers (yay, paru) run here, never as root: makepkg refuses root. No sudo: applying updates, installing packages and other privileged commands go to jarvis-shell-system-mcp.",
       "title": "Shell",
       "tagline": "Run commands as you, no password needed.",
       "category": "system",
@@ -305,7 +305,7 @@
     {
       "id": "com.github.yakupatahanov.jarvis-shell-system-mcp",
       "name": "JARVIS Shell (System)",
-      "summary": "Run commands as root on the computer JARVIS runs on: applying system updates and upgrades (pacman -Syu, apt upgrade, dnf upgrade), installing and removing packages, starting, stopping and restarting systemd services, and other administrator work; every command asks for the administrator password. Only checking whether updates exist needs no root (jarvis-shell-mcp). Installed to /usr/share/mcp; interactive commands (a package manager's [Y/n]) run as named PTY jobs answerable mid-run via send_input",
+      "summary": "Run commands as root on the computer JARVIS runs on: applying system updates and upgrades (pacman -Syu, apt upgrade, dnf upgrade), installing and removing packages, starting, stopping and restarting systemd services, and other administrator work. Each call asks for the administrator password unless one given moments ago still covers it (polkit's short grace window, or sudo's own timestamp rules when JARVIS's sudo popup is on). Only checking whether updates exist needs no root (jarvis-shell-mcp), and AUR helpers run there too: makepkg refuses root. Installed to /usr/share/mcp; interactive commands (a package manager's [Y/n]) run as named PTY jobs answerable mid-run via send_input",
       "title": "Shell as root",
       "tagline": "Run commands as root after your password: updates, installs, services.",
       "category": "system",
