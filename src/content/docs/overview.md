@@ -5,16 +5,16 @@ category: Getting Started
 order: 1
 ---
 
-**The world's first operating system with a custom AI-integrated kernel.**
+**A Linux distribution whose kernel talks to its AI.**
 
-JARVIS OS is a custom Linux distribution built on a CachyOS/Arch base where an AI assistant
+JARVIS OS is a custom Linux distribution built on Arch Linux where an AI assistant
 handles system administration, file management, and hardware control through natural language —
 voice or text. The kernel itself speaks to the AI through a dedicated character device
 (`/dev/jarvis`), making the AI a first-class OS citizen rather than a userspace afterthought.
 
 > **Status**: Work in progress. The custom kernel (`linux-jarvisos`), JARVIS driver, and agent
 > runtime are functional. The full ISO build pipeline builds successfully; live-boot testing and
-> the Calamares installer are still being refined.
+> the `jarvis-install` installer are still being refined, and no ISO has been released yet.
 
 ## What makes this different
 
@@ -89,11 +89,17 @@ build and install the kernel on a Fedora or Debian host.
 
 ## Where to go next
 
-- [Installing JARVIS OS](/docs/installing) — the fastest path, using the pre-built ISO
-- [The Build Pipeline](/docs/build-pipeline) — build your own ISO from source
+- [Get JARVIS](/download) — run JARVIS on the Linux you already have, in four steps
+- [The Build Pipeline](/docs/build-pipeline) — build a JarvisOS ISO from source
+- [Installing JARVIS OS](/docs/installing) — boot that ISO and install it
 - [Standalone Agent Quickstart](/docs/standalone-agent) — run the JARVIS agent standalone (Linux, macOS, or Windows), no ISO or custom kernel required
 
 ## Changelog — corrected claims
+
+*2026-11-15:*
+
+- "The world's first operating system with a custom AI-integrated kernel" → a plain description; the site makes no claim it can't back.
+- Base corrected: CachyOS/Arch → Arch Linux (`build.config.example` `ISO_FILE="archlinux-x86_64.iso"`); installer corrected: Calamares → `jarvis-install` (`05-bake-installer.sh`); there is no ISO release yet, so "the fastest path, using the pre-built ISO" now points to the Download page's four steps.
 
 *2026-07-22:*
 

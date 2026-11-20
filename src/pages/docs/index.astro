@@ -21,15 +21,15 @@ const categories = CATEGORY_ORDER.map((category) => {
 
 <BaseLayout
   title="Documentation"
-  description="JARVIS OS documentation — installing, the build pipeline, building the custom kernel, running the AI agent, and troubleshooting."
+  description="JARVIS documentation: installing JARVIS, building JarvisOS and its kernel, running the agent, and troubleshooting."
 >
   <section class="section">
     <div class="container">
       <span class="section-label">Documentation</span>
       <h1 class="section-title">Docs</h1>
       <p class="docs-intro">
-        Everything you need to understand, build, and run JARVIS OS — organized like a wiki.
-        Pick a section below, or jump straight to an article from the sidebar once you're in.
+        How to install, build and run JARVIS, and what to do when something breaks. Start
+        with one of the two below, or pick an article.
       </p>
     </div>
   </section>
@@ -40,15 +40,15 @@ const categories = CATEGORY_ORDER.map((category) => {
       <h2 style="margin-bottom: var(--space-xl);">Quick Start</h2>
       <div class="grid-2">
         <div class="card">
-          <h3>Option A: Download ISO</h3>
-          <p>The fastest way to try JARVIS OS. Download the pre-built ISO, flash it, and boot.</p>
-          <a href="/docs/installing" class="btn btn-outline" style="margin-top: var(--space-lg);">
-            Installing JARVIS OS &rarr;
+          <h3>JARVIS on the Linux you have</h3>
+          <p>Four steps: its helpers, JARVIS itself, a model, then ask. On the distribution you already run.</p>
+          <a href="/download" class="btn btn-outline" style="margin-top: var(--space-lg);">
+            The four steps &rarr;
           </a>
         </div>
         <div class="card">
-          <h3>Option B: Build from Source</h3>
-          <p>Clone the repo and run the build pipeline on an Arch Linux host to produce your own ISO.</p>
+          <h3>Build JarvisOS</h3>
+          <p>There is no ISO release yet. Build one on an Arch-based computer with the build pipeline.</p>
           <a href="/docs/build-pipeline" class="btn btn-outline" style="margin-top: var(--space-lg);">
             The Build Pipeline &rarr;
           </a>

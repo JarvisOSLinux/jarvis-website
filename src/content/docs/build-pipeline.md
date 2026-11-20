@@ -18,7 +18,7 @@ build, can be run individually for debugging, and is orchestrated end-to-end by 
 | `02-unsquash-fs.sh` | Unsquash | Extracts the SquashFS rootfs into `build/iso-rootfs/` for modification via `arch-chroot`. |
 | `03-bake-wayland.sh` | Desktop | Installs KDE Plasma Wayland, PipeWire audio, NetworkManager, input drivers, and hardware firmware; creates the `liveuser` account with passwordless sudo; writes the default SDDM Wayland config. SDDM is not enabled on the live ISO — the TUI installer auto-launches on TTY1 instead, and SDDM autologin is set up at install time. |
 | `03b-build-kernel.sh` | Kernel | Builds `linux-jarvisos` and `linux-jarvisos-headers` with `makepkg`, installs into the rootfs via `pacman -U`, regenerates the initramfs. See [Building the Kernel](/docs/building-the-kernel). |
-| `04-bake-jarvis.sh` | AI stack | Copies `Project-JARVIS` into the rootfs, creates the Python venv, and installs Ollama — the LLM model is deliberately not pre-pulled into the ISO; it downloads on first boot via `jarvis-setup.service`. Also builds the `dmcp` and `dispatch` Rust binaries on the host (with a GitHub Releases binary fallback) and installs them to `/usr/bin`, stages the Vosk STT model directory, and sets up the `jarvis.service` systemd unit and CLI wrappers. |
+| `04-bake-jarvis.sh` | AI stack | Copies `Project-JARVIS` into the rootfs, creates the Python venv, and installs llama.cpp (`llama-server`, which JARVIS starts and stops itself) — the model is deliberately not pre-pulled into the ISO; it downloads on first boot via `jarvis-setup.service`, and the default provider pool is that one local model. Also builds the `dmcp` and `dispatch` Rust binaries on the host (with a GitHub Releases binary fallback) and installs them to `/usr/bin`, stages the Vosk STT model directory, and sets up the `jarvis.service` systemd unit and CLI wrappers. |
 | `05-bake-installer.sh` | Installer | Installs the `jarvis-install` TUI installer (bash + `dialog`) into the rootfs and configures TTY1 root auto-login so it launches automatically in the live environment. |
 | `06-squash-fs.sh` | Repack | Repacks `build/iso-rootfs/` back into a SquashFS image with `xz` compression. |
 | `07-rebuild-iso.sh` | Assemble | Assembles the final ISO with `xorriso`, dynamically sizes `efiboot.img`, and updates the syslinux/GRUB bootloader entries. |
@@ -51,6 +51,10 @@ Or run stages individually when debugging — see [Building the ISO](/docs/build
 the full step-by-step walkthrough, requirements, and QEMU testing instructions.
 
 ## Changelog — corrected claims
+
+*2026-11-15:*
+
+- Step 4 corrected: it installs llama.cpp, not Ollama, and the default provider pool is one local llama.cpp model downloaded on first boot (code: `04-bake-jarvis.sh`, "Install llama.cpp (llama-server)").
 
 *2026-07-22:*
 

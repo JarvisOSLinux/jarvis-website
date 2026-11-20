@@ -39,6 +39,14 @@ preset, so run `npx astro check` if you want type diagnostics — it isn't wired
 - **Fonts are self-hosted** in `public/fonts/` (Google Fonts' latin + latin-ext woff2 subsets, each
   family's `OFL.txt` beside them), declared by `@font-face` at the top of `global.css`. No page
   makes a third-party font request.
+- **The tool list is synced at build time too.** `scripts/sync-servers.mjs` (npm `prebuild`, or
+  `npm run sync-servers`) reads the mcp-registry's `registry.json` and each manifest and writes
+  `src/data/servers.json`: every server but the fixtures (`fixture: true`) and deprecated or
+  removed entries, with its `title` and `tagline` (the registry's copy for people,
+  mcp-registry#137) and its tools counted by threat level. Offline it keeps the committed file;
+  `JARVIS_REGISTRY_URL` points it at another `registry.json`. `/servers` and the home page's count
+  read it. Nothing about a server is written here: a new or changed entry reaches the site at the
+  next build.
 - Styling is a single global stylesheet (`src/styles/global.css`) with CSS custom properties — no
   component-scoped styling system, no Tailwind.
 - **Deployment is a bare-metal VPS via rsync + SSH, not GitHub Pages** — despite the org name, there
@@ -91,8 +99,11 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
 - Project is research-first, product-second. "Built for people, not corporations." Open source is
   a structural necessity, not a preference. Since 2026-11-10 the **home page leads with the
   product** (Yakup's call): what JARVIS does, in real screens, then the research as its own
-  section and page. Product copy stays technical and checkable; every claim on the home page
-  names something that exists on `main`.
+  section and page. Since 2026-11-15 the home page is a **pitch** (Yakup: "the website itself is
+  like a pitch for us"): "You ask. JARVIS does.", then short sections that each answer a question a
+  visitor has (why not a chatbot, what can it do, can I walk away, will it break my computer, what
+  does it cost, who made it), in plain words for someone who has never heard of MCP. Pitch, not
+  fluff: every claim still names something that exists on `main`. Not an FAQ.
 
 ## Design language (product-first redesign, 2026-11-10 — match it)
 - Dark and calm: `#070a10` background, `#00c8ff` cyan as the one accent. Gold, red and green
@@ -107,7 +118,8 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
 - The logo is `public/logo.svg` (transparent). The old `jarvios_*`/`jarvisos_*` JPG/PNGs sit on a
   black rectangle; do not use them on a page. The share image is `public/assets/og.png`.
 - Severity labels: Critical (red), High (gold), Medium (cyan), Novel (green).
-- Tone: plain, technical, checkable. No marketing fluff, no claim the code doesn't back.
+- Tone: plain and confident. Short headlines that sell, body copy a non-Linux person can read,
+  and the technical detail in the checks and on the inner pages. No claim the code doesn't back.
 
 ## GitHub org structure
 Each `/subsystems` card links to a repo under the `JarvisOSLinux` org:

@@ -1,12 +1,17 @@
 ---
 title: Standalone Agent Quickstart
-description: Run the JARVIS agent on any Linux system with Ollama — no ISO or custom kernel required.
+description: Run the jarvisos repo's single-file prototype agent with llama.cpp — no ISO or custom kernel required.
 category: Running JARVIS
 order: 1
 ---
 
+> **This is not the JARVIS on the [Download page](/download).** `jarvis_agent.py` in the
+> `jarvisos` repo is a single-file prototype: it plans shell commands and runs them, without the
+> daemon's tools, sessions, memory, phone access or host-side checks. To install JARVIS itself,
+> follow the four steps on the Download page.
+
 The `jarvis_agent.py` runtime itself is distro-agnostic: it runs on any Linux system with
-Ollama and its Python dependencies installed. The bundled launcher script, however, targets
+llama.cpp's `llama-server` and its Python dependencies installed. The bundled launcher script, however, targets
 Arch-based systems — see the note below. The agent does not require the custom kernel: its
 system snapshot reads standard `/proc` and `/sys/class/thermal` interfaces, and the launcher
 selects a model from available RAM in `/proc/meminfo`. Kernel integration via
@@ -16,11 +21,8 @@ standalone agent.
 ## Quick start
 
 ```bash
-# Ensure Ollama is running
-systemctl start ollama
-
 # Launch the agent (handles all setup automatically)
-./test-jarvis-ollama.sh
+./test-jarvis.sh
 ```
 
 The launcher will:
@@ -28,23 +30,24 @@ The launcher will:
 1. Install system dependencies (`portaudio`, `python-pip`, `unzip`) via `pacman`
 2. Create a Python venv with `vosk`, `pyaudio`, `requests`
 3. Download the Vosk small English model (~45 MB) for offline STT
-4. Select an Ollama model based on available RAM
+4. Start `llama-server` (installing `llama-cpp` if it is missing) with a model chosen by available
+   RAM, Qwen3-8B or Qwen3-4B, downloaded on first run
 5. Open a dedicated terminal window with the JARVIS agent
 
 > **Arch-based systems only.** The launcher installs dependencies exclusively through
 > `pacman` and aborts on distros without it. On other distros, install `portaudio`, `pip`,
 > and `unzip` with your package manager, create a venv with `vosk`, `pyaudio`, and
-> `requests`, then run `python3 jarvis_agent.py` directly with `JARVIS_MODEL`, `OLLAMA_URL`,
+> `requests`, then run `python3 jarvis_agent.py` directly with `JARVIS_MODEL`, `LLM_URL`,
 > and `VOSK_MODEL_PATH` set.
 
 ## Selecting a model
 
 ```bash
 # Force a specific model
-JARVIS_MODEL=qwen3:8b ./test-jarvis-ollama.sh
+JARVIS_MODEL=Qwen/Qwen3-8B-GGUF:Q4_K_M ./test-jarvis.sh
 
-# Point at a remote Ollama instance
-OLLAMA_URL=http://192.168.1.10:11434 ./test-jarvis-ollama.sh
+# Point at an already-running llama-server
+LLM_URL=http://192.168.1.10:11445 ./test-jarvis.sh
 ```
 
 ## Agent commands
@@ -80,6 +83,13 @@ No voice input available (`vosk`/`pyaudio` missing)? The agent falls back to tex
 automatically — see [Troubleshooting](/docs/troubleshooting#jarvis-agent) to enable voice.
 
 ## Changelog — corrected claims
+
+*2026-11-15:*
+
+- Ollama → llama.cpp: the launcher is now `test-jarvis.sh`, installs `llama-cpp` if needed and
+  starts `llama-server` itself; the model is a Hugging Face GGUF spec and the server is set with
+  `LLM_URL` (`test-jarvis.sh` header and step 4, `jarvis_agent.py:46-47`).
+- Added the note that this prototype is not the JARVIS daemon the rest of the site describes.
 
 *2026-07-22:*
 
