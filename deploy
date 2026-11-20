@@ -28,36 +28,48 @@ echo "Building Astro site..."
 npm run build
 
 # ── Deploy static files ────────────────────────────────────────────────────────
+# Yakup and Toufic both deploy, as themselves, into one web root shared through the
+# `jarvis` group. So: keep whoever's ownership the server gives (--no-owner/--no-group),
+# leave every file and folder writable by the group and new folders in it (g+s), and
+# don't touch folder times (only a folder's owner may set them). Without these, rsync
+# exits 23 and `set -e` stops the script.
 echo "Deploying static site to ${VPS_USER}@${VPS_HOST}:${VPS_DIR}"
-rsync -arzvh "$PWD/dist/" --delete "${VPS_USER}@${VPS_HOST}:${VPS_DIR}"
+rsync -azvh --no-owner --no-group --omit-dir-times --chmod=Dg+rwxs,Fg+rw \
+      "$PWD/dist/" --delete "${VPS_USER}@${VPS_HOST}:${VPS_DIR}"
 
 # ── Deploy contact handler ─────────────────────────────────────────────────────
-echo "Deploying contact handler..."
-ssh "${VPS_USER}@${VPS_HOST}" "mkdir -p ~/contact-handler"
-rsync -arzvh "$PWD/server/contact_handler.py" \
-             "$PWD/server/contact-handler.service" \
-             "${VPS_USER}@${VPS_HOST}:~/contact-handler/"
+# Only when this checkout has one: the site has no contact form, and server/ isn't in
+# the repository, so without this check the script failed here on every run.
+if [ -f "$PWD/server/contact_handler.py" ]; then
+  echo "Deploying contact handler..."
+  ssh "${VPS_USER}@${VPS_HOST}" "mkdir -p ~/contact-handler"
+  rsync -azvh --no-owner --no-group "$PWD/server/contact_handler.py" \
+               "$PWD/server/contact-handler.service" \
+               "${VPS_USER}@${VPS_HOST}:~/contact-handler/"
 
-# Install systemd service if not already present, then reload
-ssh "${VPS_USER}@${VPS_HOST}" bash <<'REMOTE'
-  SERVICE_SRC="$HOME/contact-handler/contact-handler.service"
-  SERVICE_DST="/etc/systemd/system/contact-handler.service"
+  # Install systemd service if not already present, then reload
+  ssh "${VPS_USER}@${VPS_HOST}" bash <<'REMOTE'
+    SERVICE_SRC="$HOME/contact-handler/contact-handler.service"
+    SERVICE_DST="/etc/systemd/system/contact-handler.service"
 
-  # Copy service file if it changed or doesn't exist
-  if [ ! -f "$SERVICE_DST" ] || ! diff -q "$SERVICE_SRC" "$SERVICE_DST" > /dev/null 2>&1; then
-    sudo cp "$SERVICE_SRC" "$SERVICE_DST"
-    sudo systemctl daemon-reload
-    sudo systemctl enable contact-handler
-  fi
+    # Copy service file if it changed or doesn't exist
+    if [ ! -f "$SERVICE_DST" ] || ! diff -q "$SERVICE_SRC" "$SERVICE_DST" > /dev/null 2>&1; then
+      sudo cp "$SERVICE_SRC" "$SERVICE_DST"
+      sudo systemctl daemon-reload
+      sudo systemctl enable contact-handler
+    fi
 
-  if [ ! -f /etc/contact-handler.env ]; then
-    echo "⚠️  WARNING: /etc/contact-handler.env not found on VPS."
-    echo "   Create it from server/contact-handler.env.example before the handler can start."
-    echo "   Contact form submissions will fail until this is done."
-  else
-    sudo systemctl restart contact-handler
-    echo "Contact handler status: $(sudo systemctl is-active contact-handler)"
-  fi
+    if [ ! -f /etc/contact-handler.env ]; then
+      echo "⚠️  WARNING: /etc/contact-handler.env not found on VPS."
+      echo "   Create it from server/contact-handler.env.example before the handler can start."
+      echo "   Contact form submissions will fail until this is done."
+    else
+      sudo systemctl restart contact-handler
+      echo "Contact handler status: $(sudo systemctl is-active contact-handler)"
+    fi
 REMOTE
+else
+  echo "No server/contact_handler.py here; skipping the contact handler."
+fi
 
 echo "Deployment successful!"

@@ -56,11 +56,26 @@ async function sync() {
   return { updated: registry.updated, synced: new Date().toISOString(), servers };
 }
 
+// The same registry with only a new `synced` time is left alone, so a build or a
+// deploy doesn't leave the checkout with a modified servers.json.
+async function unchanged(data) {
+  try {
+    const kept = JSON.parse(await readFile(OUT, "utf8"));
+    return kept.updated === data.updated && JSON.stringify(kept.servers) === JSON.stringify(data.servers);
+  } catch {
+    return false;
+  }
+}
+
 try {
   const data = await sync();
-  await mkdir(new URL(".", OUT), { recursive: true });
-  await writeFile(OUT, JSON.stringify(data, null, 2) + "\n");
-  console.log(`servers.json: ${data.servers.length} servers from the registry`);
+  if (await unchanged(data)) {
+    console.log(`servers.json: ${data.servers.length} servers, unchanged in the registry`);
+  } else {
+    await mkdir(new URL(".", OUT), { recursive: true });
+    await writeFile(OUT, JSON.stringify(data, null, 2) + "\n");
+    console.log(`servers.json: ${data.servers.length} servers from the registry`);
+  }
 } catch (err) {
   try {
     const kept = JSON.parse(await readFile(OUT, "utf8"));
