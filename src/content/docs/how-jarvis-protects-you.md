@@ -9,7 +9,7 @@ order: 1
 
 That promise has two halves:
 
-- **Your data stays yours.** What you ask, what JARVIS reads and what it remembers stay on your computer.
+- **Your data stays yours.** With a local model, what you ask, what JARVIS reads and what it remembers stay on your computer.
 - **Nothing changes without your yes.** Anything that changes your computer, sends something or signs in waits for you, and JARVIS is built against the known ways an AI gets steered by a web page, an email or a bad tool.
 
 Security people call these confidentiality and integrity. This page says how JARVIS delivers each, and,
