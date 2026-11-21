@@ -10,7 +10,7 @@ interface Props {
 
 const { title, description, slug } = Astro.props;
 
-const CATEGORY_ORDER = ["Getting Started", "Build System", "Running JARVIS", "Reference"] as const;
+const CATEGORY_ORDER = ["Security", "Getting Started", "Build System", "Running JARVIS", "Reference"] as const;
 
 const allDocs = await getCollection("docs");
 const byCategory = CATEGORY_ORDER.map((category) => ({

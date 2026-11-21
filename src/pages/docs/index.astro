@@ -2,8 +2,9 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
-const CATEGORY_ORDER = ["Getting Started", "Build System", "Running JARVIS", "Reference"] as const;
+const CATEGORY_ORDER = ["Security", "Getting Started", "Build System", "Running JARVIS", "Reference"] as const;
 const CATEGORY_BLURB: Record<(typeof CATEGORY_ORDER)[number], string> = {
+  Security: "What keeps your data yours and your computer yours: how it works, and its limits today.",
   "Getting Started": "What JARVIS OS is, system requirements, and how to get it running.",
   "Build System": "The script pipeline that produces a bootable ISO, plus building the custom kernel.",
   "Running JARVIS": "Running the AI agent — standalone, or as the full daemon on an installed system.",
@@ -21,15 +22,15 @@ const categories = CATEGORY_ORDER.map((category) => {
 
 <BaseLayout
   title="Documentation"
-  description="JARVIS documentation: installing JARVIS, building JarvisOS and its kernel, running the agent, and troubleshooting."
+  description="JARVIS documentation: how JARVIS protects your data, installing JARVIS, building JarvisOS and its kernel, running the agent, and troubleshooting."
 >
   <section class="section">
     <div class="container">
       <span class="section-label">Documentation</span>
       <h1 class="section-title">Docs</h1>
       <p class="docs-intro">
-        How to install, build and run JARVIS, and what to do when something breaks. Start
-        with one of the two below, or pick an article.
+        How JARVIS keeps your data yours, then how to install, build and run it, and what to do
+        when something breaks. Start with one of the three below, or pick an article.
       </p>
     </div>
   </section>
@@ -38,7 +39,14 @@ const categories = CATEGORY_ORDER.map((category) => {
   <section class="section" style="padding-top: 0;">
     <div class="container">
       <h2 style="margin-bottom: var(--space-xl);">Quick Start</h2>
-      <div class="grid-2">
+      <div class="grid-3">
+        <div class="card">
+          <h3>How JARVIS protects your data</h3>
+          <p>What stays on your computer, what waits for your yes, and what isn't covered yet.</p>
+          <a href="/docs/how-jarvis-protects-you" class="btn btn-outline" style="margin-top: var(--space-lg);">
+            The security model &rarr;
+          </a>
+        </div>
         <div class="card">
           <h3>JARVIS on the Linux you have</h3>
           <p>Four steps: its helpers, JARVIS itself, a model, then ask. On the distribution you already run.</p>

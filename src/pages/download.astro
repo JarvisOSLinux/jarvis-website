@@ -9,7 +9,7 @@ const downloadSchema = JSON.stringify({
   operatingSystem: "Linux",
   applicationCategory: "UtilitiesApplication",
   description:
-    "An AI for your Linux computer: tell it what you want and it works out the steps, installs the tools it needs and asks before anything risky. Free and open source, with local or cloud models.",
+    "Hand AI your work, not your data: an AI that does your work on your own Linux computer, with a model that runs there too, and asks before it changes anything. Free and open source.",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   url: "https://jarvisoslinux.org/download",
   author: {
@@ -79,7 +79,7 @@ const released = iso
 
 <BaseLayout
   title="Get JARVIS"
-  description="Install JARVIS on the Linux you already have in four steps: its helpers, JARVIS itself, a model (local with llama.cpp, or any OpenAI-compatible API), then ask. Plus the desktop app, phone access and JarvisOS."
+  description="Install JARVIS on the Linux you already have in four steps: its helpers, JARVIS itself, a model on your computer (llama.cpp) or any OpenAI-compatible API, then ask. Plus the desktop app, phone access and JarvisOS."
 >
   <script slot="head" type="application/ld+json" set:html={downloadSchema} />
 
@@ -159,11 +159,15 @@ ln -sf "$PWD/.venv/bin/jarvis" ~/.local/bin/jarvis`}</code></pre>
         <li class="step">
           <div class="step-copy">
             <span class="step-n mono">3</span>
-            <h2>A model</h2>
+            <h2>A model on your computer</h2>
             <p>
-              Free and private: a model that runs on your computer through llama.cpp. JARVIS
-              downloads it, about 2.5&nbsp;GB, the first time it starts. Or use any
-              OpenAI-compatible API with your own key.
+              The private way, and the free one: a model that runs on your computer through
+              llama.cpp, so nothing you say leaves it. JARVIS downloads it, about 2.5&nbsp;GB, the
+              first time it starts.
+            </p>
+            <p class="step-note">
+              Prefer a bigger hosted model? Any OpenAI-compatible API works with your own key. Then
+              what you ask goes to that provider. <a href="/docs/how-jarvis-protects-you">What stays on your computer →</a>
             </p>
             <p class="step-note">
               Keep llama.cpp even with a hosted model. JARVIS runs a small local model with it
