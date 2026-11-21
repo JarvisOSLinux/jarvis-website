@@ -100,10 +100,20 @@ Three privilege escalation stages: (1) user-level, (2) sudo-enabled, (3) web-ena
   a structural necessity, not a preference. Since 2026-11-10 the **home page leads with the
   product** (Yakup's call): what JARVIS does, in real screens, then the research as its own
   section and page. Since 2026-11-15 the home page is a **pitch** (Yakup: "the website itself is
-  like a pitch for us"): "You ask. JARVIS does.", then short sections that each answer a question a
-  visitor has (why not a chatbot, what can it do, can I walk away, will it break my computer, what
-  does it cost, who made it), in plain words for someone who has never heard of MCP. Pitch, not
-  fluff: every claim still names something that exists on `main`. Not an FAQ.
+  like a pitch for us"), in plain words for someone who has never heard of MCP. Pitch, not fluff:
+  every claim still names something that exists on `main`. Not an FAQ.
+- **Since 2026-11-21 the pitch is one problem: data security and integrity** (Yakup, after a
+  friend's review said the site sold too many features). The line is **"Hand AI your work, not
+  your data."** The home page is: hero → the problem (three risks, each with JARVIS's answer) →
+  *Your data stays yours* (confidentiality) → *Nothing without your yes* (integrity of actions) →
+  *Built against the known attacks* (the six threats, each with its fix in plain words; the
+  research is the evidence) → one line linking to the features → get it. Doing the work is not an
+  extra (it's why security matters), but phone, voice, providers, parallel requests, skills and
+  the tool list are: they live in `/docs/what-jarvis-can-do`, after the Security docs category,
+  not on the home page. Never claim more than `main` does: "no AI company sees your data" holds
+  only with a local model, so say so; tools are not sandboxed yet (dmcp#63); folder rules
+  (`jarvis constrain`) miss paths inside shell commands; prompt injection is reduced, not solved.
+  `/docs/how-jarvis-protects-you` states these limits, and the copy must not contradict it.
 
 ## Design language (product-first redesign, 2026-11-10 — match it)
 - Dark and calm: `#070a10` background, `#00c8ff` cyan as the one accent. Gold, red and green

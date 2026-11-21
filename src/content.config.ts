@@ -6,7 +6,7 @@ const docs = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    category: z.enum(["Getting Started", "Build System", "Running JARVIS", "Reference"]),
+    category: z.enum(["Security", "Getting Started", "Build System", "Running JARVIS", "Reference"]),
     order: z.number(),
   }),
 });

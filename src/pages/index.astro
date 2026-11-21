@@ -11,7 +11,7 @@ const softwareSchema = JSON.stringify({
   operatingSystem: "Linux",
   applicationCategory: "UtilitiesApplication",
   description:
-    "An AI assistant for Linux that does what you ask on your own computer: it finds and installs the tools it needs from a vetted registry, asks before anything risky, runs local or cloud models, and can be driven from your phone over Tailscale.",
+    "An AI assistant that does your work on your own computer, with an AI model that can run there too: your data stays with you, and nothing changes without your approval. Built against six security threats identified in research at WSU Everett.",
   url: "https://jarvisoslinux.org",
   downloadUrl: "https://jarvisoslinux.org/download",
   isAccessibleForFree: true,
@@ -21,7 +21,7 @@ const softwareSchema = JSON.stringify({
     url: "https://github.com/JarvisOSLinux",
   },
   keywords:
-    "AI assistant, Linux, local AI, llama.cpp, Model Context Protocol, MCP, voice assistant, open source",
+    "private AI assistant, local AI, AI agent security, data privacy, prompt injection, Linux, llama.cpp, Model Context Protocol, open source",
 });
 
 const researchSchema = JSON.stringify({
@@ -41,55 +41,74 @@ const researchSchema = JSON.stringify({
   ],
 });
 
-// What the hero types out. Each one is a request a registry server answers.
+// What the hero types out: work that touches your own data. Each one is
+// something a registry server does (email, microsoft-365, files, shell).
 const heroAsks = [
-  "Update my system",
-  "What's slowing my laptop down?",
-  "Pause the music",
+  "Did my professor email me back?",
   "What's on my calendar tomorrow?",
-  "Make me a wallpaper of a foggy forest",
-  "Turn off the living room lights",
+  "Find last week's lecture notes",
+  "Update my system",
+  "Sort my Downloads folder",
 ];
 
-// Things to ask, each with the registry server that does it.
-const asks = [
-  [
-    { ask: "Update my system", tool: "shell (root)" },
-    { ask: "What's eating my memory?", tool: "system-status" },
-    { ask: "Install VLC", tool: "shell (root)" },
-    { ask: "Pause the music", tool: "mpris" },
-    { ask: "What's the weather this weekend?", tool: "weather" },
-    { ask: "How much is 50 euros in dollars?", tool: "currency" },
-    { ask: "How long is the drive to Seattle?", tool: "maps" },
-    { ask: "Who was Ada Lovelace?", tool: "wikipedia" },
-    { ask: "What's in the news this morning?", tool: "news" },
-  ],
-  [
-    { ask: "What's on my calendar tomorrow?", tool: "caldav" },
-    { ask: "Did my professor email me back?", tool: "email" },
-    { ask: "Send this to my Telegram", tool: "telegram" },
-    { ask: "Turn off the living room lights", tool: "home assistant" },
-    { ask: "Make me a wallpaper of a foggy forest", tool: "comfyui" },
-    { ask: "Add this to my Obsidian notes", tool: "obsidian" },
-    { ask: "What are my open pull requests?", tool: "github" },
-    { ask: "Open this page and fill in the form", tool: "playwright" },
-    { ask: "Post it in our Slack", tool: "slack" },
-  ],
+// The problem, as three risks, each with what JARVIS does about it.
+const risks = [
+  {
+    risk: "What it reads goes to someone else's servers.",
+    answer: "It runs on your computer, and so can its AI model.",
+    href: "#yours",
+  },
+  {
+    risk: "It changes things you never asked for.",
+    answer: "Anything that changes something waits for your yes.",
+    href: "#yes",
+  },
+  {
+    risk: "A web page, an email or a bad tool gives it orders.",
+    answer: "Outside text is marked as data, and every tool is reviewed first.",
+    href: "#attacks",
+  },
 ];
 
+// The six threats from the research, each with its fix in plain words.
+// Names and severities match /research; fixes stay within what main does.
 const threats = [
-  { name: "Malicious MCP Servers", tags: ["critical"] },
-  { name: "Prompt Injection", tags: ["critical"] },
-  { name: "Misleading MCP Server Usage", tags: ["high"] },
-  { name: "Unauthorized Sudo Requests via MCP", tags: ["critical"] },
-  { name: "Sudo Capability Exploitation", tags: ["critical"] },
-  { name: "Bloated Context", tags: ["critical", "novel"] },
+  {
+    name: "Malicious MCP Servers",
+    fix: "Every tool is reviewed and rated before JARVIS can install it, and one pulled from the registry later is blocked.",
+    tags: ["critical"],
+  },
+  {
+    name: "Prompt Injection",
+    fix: "Text from web pages and emails arrives sealed and marked as data, never as instructions.",
+    tags: ["critical"],
+  },
+  {
+    name: "Misleading MCP Server Usage",
+    fix: "Tool descriptions are checked for accuracy before a tool enters the registry.",
+    tags: ["high"],
+  },
+  {
+    name: "Unauthorized Sudo Requests via MCP",
+    fix: "Root takes your password, out of the AI's reach, every time.",
+    tags: ["critical"],
+  },
+  {
+    name: "Sudo Capability Exploitation",
+    fix: "Each privileged step is checked and confirmed on its own, so one yes is never a blank check.",
+    tags: ["critical"],
+  },
+  {
+    name: "Bloated Context",
+    fix: "Partly solved: folder rules you set are stored and enforced outside the AI's memory. Wider rules are next.",
+    tags: ["critical", "novel"],
+  },
 ];
 ---
 
 <BaseLayout
-  fullTitle="JARVIS: You ask. JARVIS does."
-  description="Tell your Linux computer what you want in plain words. JARVIS works out the steps, installs whatever it's missing and gets it done, and asks before anything risky. Free and open source, with local or cloud AI."
+  fullTitle="JARVIS: Hand AI your work, not your data."
+  description="JARVIS is an AI assistant that does your work on your own computer, with an AI model that can run there too. No AI company sees your data, and nothing changes without your yes. Free and open source, built from security research at WSU Everett."
 >
   <script slot="head" type="application/ld+json" set:html={softwareSchema} />
   <script slot="head" type="application/ld+json" set:html={researchSchema} />
@@ -98,14 +117,14 @@ const threats = [
   <section class="hero">
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="container hero-inner">
-      <p class="hero-eyebrow mono animate-fade-up">Free and open source AI for Linux</p>
+      <p class="hero-eyebrow mono animate-fade-up">Security-first AI assistant</p>
       <h1 class="animate-fade-up animate-fade-up--delay-1">
-        You ask.<br /><span class="hl">JARVIS does.</span>
+        Hand AI your work,<br /><span class="hl">not your data.</span>
       </h1>
       <p class="hero-sub animate-fade-up animate-fade-up--delay-2">
-        Tell your computer what you want, in plain words. JARVIS works out the steps, installs
-        whatever it's missing and gets it done. Go grab a coffee while it works.{" "}
-        <span class="aside">(It can't make the coffee. Yet.)</span>
+        JARVIS does the work on your own computer: your files, email, calendar and system, with
+        an AI model that runs there too. No AI company sees your data, and nothing changes
+        without your yes.
       </p>
 
       <div class="ask-bar animate-fade-up animate-fade-up--delay-2" aria-hidden="true">
@@ -115,12 +134,12 @@ const threats = [
 
       <div class="hero-actions animate-fade-up animate-fade-up--delay-3">
         <a href="/download" class="btn btn-primary">Get JARVIS</a>
-        <a href="#ask" class="btn btn-outline">See what it can do</a>
+        <a href="#problem" class="btn btn-outline">How it keeps your data</a>
       </div>
       <ul class="hero-facts mono animate-fade-up animate-fade-up--delay-3">
-        <li>Runs on your computer</li>
-        <li>Asks before anything risky</li>
-        <li>Works from your phone</li>
+        <li>Runs on your Linux computer</li>
+        <li>Nothing changes without your yes</li>
+        <li>Open source, so you can check</li>
       </ul>
     </div>
 
@@ -148,134 +167,101 @@ const threats = [
     </div>
   </section>
 
-  <!-- Why: does vs tells -->
-  <section class="section" id="why">
+  <!-- The problem -->
+  <section class="section" id="problem">
     <div class="container">
-      <div class="why-head">
-        <span class="section-label">Why JARVIS</span>
-        <h2>Other AI tells you what to type. JARVIS does the typing.</h2>
+      <div class="problem-head">
+        <span class="section-label">The problem</span>
+        <h2>AI can only help with what it can reach.</h2>
         <p class="section-lede">
-          Ask a chatbot to install something and you get commands to copy, a password to type and
-          a question to answer. Ask JARVIS and it gets done. It only stops to check with you.
+          Your email, your files, your calendar, your computer. Letting an AI work on them
+          usually means trusting it with all of it. JARVIS was built so you don't have to.
         </p>
       </div>
 
-      <div class="why-grid">
-        <div class="why-col">
-          <p class="why-who mono">A chatbot</p>
-          <div class="chat card">
-            <p class="bubble bubble--you">Install cowsay for me.</p>
-            <div class="bubble bubble--bot">
-              <p>Sure! Open a terminal and run:</p>
-              <code class="cmd">sudo pacman -S cowsay</code>
-              <p>Type your password when asked, then press <strong>Y</strong> to confirm.</p>
-            </div>
-            <p class="chat-foot mono">Your turn.</p>
-          </div>
+      <div class="risks card" role="table" aria-label="The risks, and what JARVIS does about each">
+        <div class="risks-row risks-row--head" role="row">
+          <span class="mono" role="columnheader">The risk</span>
+          <span class="mono hl" role="columnheader">With JARVIS</span>
         </div>
-        <div class="why-col">
-          <p class="why-who mono hl">JARVIS</p>
-          <figure class="screen">
-            <div class="screen-bar"><i></i><i></i><i></i><span>jarvis-app</span></div>
-            <img
-              src="/assets/screens/app-done.webp"
-              width="1600"
-              height="1030"
-              loading="lazy"
-              alt="The same request in JARVIS: it searched for a tool, ran pacman as a job, sent the Y you approved, and says cowsay is installed."
-            />
-          </figure>
-          <p class="chat-foot mono">Done. You approved one step.</p>
-        </div>
+        {risks.map((r) => (
+          <a class="risks-row" href={r.href} role="row">
+            <span class="risk" role="cell">{r.risk}</span>
+            <span class="answer" role="cell">{r.answer}</span>
+          </a>
+        ))}
       </div>
     </div>
   </section>
 
-  <!-- What can it do -->
-  <section class="section section--band asks-section" id="ask">
-    <div class="container">
-      <div class="asks-head">
-        <span class="section-label">What can it do?</span>
-        <h2>If you can do it on your computer, you can ask for it.</h2>
-      </div>
-    </div>
-
-    <div class="marquee" aria-label="Things you can ask JARVIS">
-      {asks.map((row, i) => (
-        <div class:list={["marquee-row", { "marquee-row--reverse": i % 2 === 1 }]}>
-          <ul class="marquee-track">
-            {[...row, ...row].map((a, j) => (
-              <li class="ask-chip" aria-hidden={j >= row.length ? "true" : undefined}>
-                <span class="ask-chip-text">“{a.ask}”</span>
-                <span class="ask-chip-tool mono">{a.tool}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-
-    <div class="container asks-foot">
-      <p class="section-lede">
-        JARVIS starts with none of these tools. The first time you ask, it finds the right one,
-        installs it and carries on. Next time it's already there.
-      </p>
-      <a href="/servers" class="btn btn-outline">See all {serverCount} tools →</a>
-    </div>
-  </section>
-
-  <!-- Walk away -->
-  <section class="section feature">
+  <!-- 1. Your data stays yours -->
+  <section class="section feature section--band" id="yours">
     <div class="container feature-grid">
       <div class="feature-copy">
-        <span class="section-label">Walk away</span>
-        <h2>Grab that coffee. JARVIS keeps going.</h2>
+        <span class="section-label">Your data stays yours</span>
+        <h2>No AI company sees your data.</h2>
         <p class="section-lede">
-          Open JARVIS on your phone and pick up where you left off. Watch it work, answer its
-          questions, approve a step or stop it, from the couch or across campus.
+          JARVIS runs on your computer, and so can its AI model. With a local model, what you ask,
+          what it reads and what it remembers stay there. No account to make, and no server of ours
+          in the middle.
         </p>
         <ul class="checks">
-          <li>Your phone reaches your computer over your own private Tailscale network, not through a server of ours.</li>
-          <li>Your API keys never leave the computer.</li>
-          <li>Let others in as guests: they can chat, but can't approve anything or touch your settings.</li>
+          <li>Pick a model and JARVIS downloads it and runs it on your computer with llama.cpp. The model works offline.</li>
+          <li>Its memory is a file on your computer, not an account in someone's cloud.</li>
+          <li>Your phone reaches it over your own Tailscale network, never through a server of ours.</li>
+          <li>API keys sit in a file only your user can read, and each goes only to its own provider.</li>
+          <li>Listening for “Hey JARVIS” and speaking back both run on your computer too.</li>
+          <li>Want a bigger cloud model? You can add one, and then what you ask goes to that provider. Your choice, never the default.</li>
         </ul>
       </div>
-      <div class="feature-visual feature-visual--phone">
-        <figure class="phone">
-          <img
-            src="/assets/screens/phone-waiting.webp"
-            width="640"
-            height="1385"
-            loading="lazy"
-            alt="JARVIS on a phone, waiting: pacman asks to proceed and the request is held."
-          />
-        </figure>
-        <img
-          class="approval-card"
-          src="/assets/screens/approval-card.webp"
-          width="760"
-          height="266"
-          loading="lazy"
-          alt="The permission card: answer pacman's question with Y, Approve or Deny."
-        />
+
+      <div class="flow card" aria-label="Where your data goes">
+        <p class="flow-head mono">Where your data goes</p>
+        <div class="flow-home">
+          <p class="flow-home-name">Your computer</p>
+          <ul class="flow-chips mono">
+            <li>JARVIS</li>
+            <li>AI model</li>
+            <li>Memory</li>
+            <li>API keys</li>
+          </ul>
+        </div>
+        <ul class="flow-out">
+          <li>
+            <span class="flow-who">Your phone</span>
+            <span class="flow-what mono">over your own Tailscale</span>
+          </li>
+          <li>
+            <span class="flow-who">Mail and calendar you connect</span>
+            <span class="flow-what mono">only what you ask for</span>
+          </li>
+          <li class="flow-none">
+            <span class="flow-who">AI companies</span>
+            <span class="flow-what mono">nothing, with a local model</span>
+          </li>
+          <li class="flow-none">
+            <span class="flow-who">Us</span>
+            <span class="flow-what mono">nothing</span>
+          </li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- In charge -->
-  <section class="section feature section--band" id="safety">
+  <!-- 2. Nothing without your yes -->
+  <section class="section feature" id="yes">
     <div class="container feature-grid feature-grid--flip">
       <div class="feature-copy">
-        <span class="section-label">You're in charge</span>
+        <span class="section-label">Nothing without your yes</span>
         <h2>It asks before it changes anything.</h2>
         <p class="section-lede">
           JARVIS looks things up on its own. Anything that changes your computer, sends something
-          or signs in waits for your yes, and you see the exact command first.
+          or signs in waits for you, and you see the exact command first.
         </p>
         <ul class="checks">
           <li>Root takes your password, every time. JARVIS never holds root itself.</li>
+          <li>Nothing hidden: every search, install and command shows up with its live output.</li>
           <li>Stop means stop. A running update is left to finish, so your system isn't left half-installed, unless you insist.</li>
-          <li>Text from a web page or an email arrives sealed in a random tag JARVIS checks, marked as data, never as your instructions.</li>
         </ul>
       </div>
       <div class="tiers-card card" aria-label="What runs on its own and what waits for you">
@@ -305,81 +291,16 @@ const threats = [
     </div>
   </section>
 
-  <!-- Your AI -->
-  <section class="section feature">
-    <div class="container feature-grid">
-      <div class="feature-copy">
-        <span class="section-label">Your AI, your call</span>
-        <h2>Free, private, or both.</h2>
-        <p class="section-lede">
-          Run an AI model on your own computer and nothing you say leaves it. Or plug in any AI
-          provider you like, free tiers included. If one runs out or goes down, JARVIS switches to
-          the next on its own.
-        </p>
-        <ul class="checks">
-          <li>Pick a model and JARVIS downloads it and runs it with llama.cpp.</li>
-          <li>Works with any OpenAI-compatible API.</li>
-          <li>Change providers while it runs. No restart.</li>
-        </ul>
-      </div>
-      <div class="pool card" aria-label="Providers, tried in order">
-        <p class="pool-head mono">Tried in order</p>
-        <ol>
-          <li>
-            <span class="pool-n mono">1</span>
-            <span class="pool-name">A model on this computer</span>
-            <span class="pool-tag mono pool-tag--ok">answering</span>
-          </li>
-          <li>
-            <span class="pool-n mono">2</span>
-            <span class="pool-name">A cloud provider</span>
-            <span class="pool-tag mono">standing by</span>
-          </li>
-          <li>
-            <span class="pool-n mono">3</span>
-            <span class="pool-name">Another one, just in case</span>
-            <span class="pool-tag mono">standing by</span>
-          </li>
-        </ol>
-        <p class="pool-foot">Out of credits, rate-limited or offline? JARVIS moves down the list and comes back when it can.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- More -->
-  <section class="section section--tight more-section">
-    <div class="container">
-      <div class="more-grid">
-        <div class="more">
-          <h3>Just say “Hey JARVIS”</h3>
-          <p>Talk to it hands-free. Listening and speaking both run on your computer, offline.</p>
-        </div>
-        <div class="more">
-          <h3>Ask the next thing right away</h3>
-          <p>JARVIS works on more than one request at a time, so you don't wait for the first to finish.</p>
-        </div>
-        <div class="more">
-          <h3>Gets better at your tools</h3>
-          <p>It can write itself a how-to for a tool once a task works, so the next time goes right the first time.</p>
-        </div>
-        <div class="more">
-          <h3>Nothing hidden</h3>
-          <p>Every search, install and command shows up with its live output. Open any of it, stop any of it.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Who's behind it -->
-  <section class="section section--band research-band">
+  <!-- 3. Built against the known attacks -->
+  <section class="section section--band research-band" id="attacks">
     <div class="container research-grid">
       <div>
-        <span class="section-label">Who's behind it</span>
-        <h2>Built by students. Backed by research.</h2>
+        <span class="section-label">Built against the known attacks</span>
+        <h2>We studied how AI on a computer goes wrong. Then we built the fixes.</h2>
         <p class="section-lede">
-          JARVIS comes out of Washington State University Everett. Handing an AI your computer is
-          risky, so we studied exactly how it goes wrong, named six threats, and built JARVIS
-          around the fixes.
+          JARVIS comes out of research at Washington State University Everett. Give an AI real
+          access to a computer and six threats appear. Each one has a fix in JARVIS, and the code
+          is open for anyone to check.
         </p>
         <p class="award mono">SURCA 2026 · Winner, Gray Grant</p>
         <a href="/research" class="btn btn-outline">Read the research</a>
@@ -388,7 +309,10 @@ const threats = [
         {threats.map((t, i) => (
           <li>
             <span class="mono threat-n">{String(i + 1).padStart(2, "0")}</span>
-            <span class="threat-name">{t.name}</span>
+            <span class="threat-body">
+              <span class="threat-name">{t.name}</span>
+              <span class="threat-fix">{t.fix}</span>
+            </span>
             <span class="threat-tags">
               {t.tags.map((tag) => <span class:list={["tag", `tag-${tag}`]}>{tag}</span>)}
             </span>
@@ -398,11 +322,25 @@ const threats = [
     </div>
   </section>
 
+  <!-- Also -->
+  <section class="section section--tight also-section">
+    <div class="container also">
+      <p>
+        It also works from your phone, answers to “Hey JARVIS”, and finds the tools it needs in
+        a reviewed registry of {serverCount} tools.
+      </p>
+      <div class="also-links">
+        <a href="/docs/what-jarvis-can-do" class="btn btn-outline">Everything it can do →</a>
+        <a href="/servers" class="also-link mono">Browse the tools</a>
+      </div>
+    </div>
+  </section>
+
   <!-- Get it -->
   <section class="section get-section">
     <div class="container">
       <div class="get-head">
-        <h2>Stop typing commands. Start asking.</h2>
+        <h2>Hand AI your work. Keep your data.</h2>
         <p class="section-lede">Free and open source. Pick how you want it.</p>
       </div>
       <div class="grid-3 get-grid">
@@ -484,8 +422,8 @@ const threats = [
   }
 
   .hero h1 {
-    font-size: clamp(3rem, 8.4vw, 6.2rem);
-    line-height: 1;
+    font-size: clamp(2.7rem, 7.4vw, 5.6rem);
+    line-height: 1.02;
     letter-spacing: -0.045em;
     margin-bottom: var(--space-xl);
   }
@@ -497,13 +435,8 @@ const threats = [
   .hero-sub {
     font-size: 1.25rem;
     line-height: 1.6;
-    max-width: 40rem;
+    max-width: 42rem;
     margin: 0 auto var(--space-xl);
-  }
-
-  .aside {
-    color: var(--text-muted);
-    white-space: nowrap;
   }
 
   .ask-bar {
@@ -600,162 +533,79 @@ const threats = [
     height: auto;
   }
 
-  /* Why */
-  .why-head {
+  /* The problem */
+  .problem-head {
     max-width: 46rem;
     margin-bottom: var(--space-2xl);
   }
 
-  .why-head h2 {
+  .problem-head h2 {
     margin-bottom: var(--space-lg);
   }
 
-  .why-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    gap: var(--space-2xl);
-    align-items: start;
-  }
-
-  .why-who {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--text-muted);
-    margin-bottom: var(--space-md);
-  }
-
-  .why-col .screen img {
-    width: 100%;
-    height: auto;
-  }
-
-  .chat {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-  }
-
-  .bubble {
-    max-width: 88%;
-    padding: 0.8rem 1rem;
-    border-radius: 14px;
-    font-size: 0.97rem;
-    line-height: 1.55;
-  }
-
-  .bubble--you {
-    align-self: flex-end;
-    background: #1b2633;
-    color: var(--text-primary);
-    border-bottom-right-radius: 4px;
-  }
-
-  .bubble--bot {
-    align-self: flex-start;
-    background: #121a24;
-    color: var(--text-secondary);
-    border-bottom-left-radius: 4px;
-    display: grid;
-    gap: 0.6rem;
-  }
-
-  .bubble--bot strong {
-    color: var(--text-primary);
-  }
-
-  .cmd {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    padding: 0.55rem 0.75rem;
-    border-radius: 8px;
-    background: #070a10;
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-  }
-
-  .chat-foot {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-top: var(--space-md);
-  }
-
-  .chat .chat-foot {
-    margin-top: 0;
-    color: var(--gold);
-  }
-
-  .why-col:last-child .chat-foot {
-    color: var(--green);
-  }
-
-  /* Asks */
-  .asks-section {
+  .risks {
+    padding: 0;
     overflow: hidden;
   }
 
-  .asks-head {
-    max-width: 44rem;
-    margin-bottom: var(--space-2xl);
-  }
-
-  .marquee {
+  .risks-row {
     display: grid;
-    gap: var(--space-md);
-    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  }
-
-  .marquee-track {
-    display: flex;
-    gap: var(--space-md);
-    width: max-content;
-    list-style: none;
-    animation: slide 70s linear infinite;
-  }
-
-  .marquee-row--reverse .marquee-track {
-    animation-direction: reverse;
-    animation-duration: 80s;
-  }
-
-  .marquee:hover .marquee-track {
-    animation-play-state: paused;
-  }
-
-  @keyframes slide {
-    to { transform: translateX(calc(-50% - var(--space-md) / 2)); }
-  }
-
-  .ask-chip {
-    display: flex;
-    align-items: baseline;
-    gap: 0.7rem;
-    padding: 0.8rem 1.15rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--bg-card);
-    white-space: nowrap;
-  }
-
-  .ask-chip-text {
-    font-size: 1.02rem;
-    color: var(--text-primary);
-  }
-
-  .ask-chip-tool {
-    font-size: 0.7rem;
-    color: var(--cyan-dim);
-  }
-
-  .asks-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-xl);
-    margin-top: var(--space-2xl);
+    padding: 1.35rem var(--space-xl);
+    border-bottom: 1px solid var(--border-subtle);
+    color: inherit;
+    transition: background var(--transition-fast);
+  }
+
+  .risks-row:last-child {
+    border-bottom: none;
+  }
+
+  a.risks-row:hover {
+    background: var(--bg-card-hover);
+    color: inherit;
+  }
+
+  .risks-row--head {
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-md);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    border-bottom-color: var(--border);
+  }
+
+  .risk {
+    position: relative;
+    padding-left: 1.6rem;
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  .risk::before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+  }
+
+  .answer {
+    position: relative;
+    padding-left: 1.6rem;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .answer::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
   }
 
   /* Feature rows */
@@ -804,31 +654,95 @@ const threats = [
     background: radial-gradient(circle, var(--cyan) 0 30%, transparent 34%);
   }
 
-  .feature-visual--phone {
-    position: relative;
+  /* Where your data goes */
+  .flow {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .flow-head {
+    max-width: none;
+    padding: var(--space-md) var(--space-xl);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+  }
+
+  .flow-home {
+    margin: var(--space-lg) var(--space-xl);
+    padding: var(--space-lg);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius);
+    background: var(--cyan-wash);
+    box-shadow: 0 0 40px -16px #00c8ff55 inset;
+  }
+
+  .flow-home-name {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+  }
+
+  .flow-chips {
     display: flex;
-    justify-content: center;
-    padding: var(--space-xl) 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    font-size: 0.78rem;
   }
 
-  .approval-card {
-    position: absolute;
-    width: min(330px, 70%);
-    height: auto;
-    left: 0;
-    bottom: 22%;
-    border-radius: 14px;
+  .flow-chips li {
+    padding: 0.3rem 0.7rem;
     border: 1px solid var(--border-strong);
-    box-shadow: 0 30px 60px -20px #000000f0, 0 0 40px -10px #00c8ff40;
+    border-radius: 999px;
+    background: var(--bg-card);
+    color: var(--cyan-soft);
   }
 
-  .feature-visual--phone .phone {
-    width: min(300px, 80%);
+  .flow-out {
+    list-style: none;
   }
 
-  .feature-visual--phone .phone img {
-    width: 100%;
-    height: auto;
+  .flow-out li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-md);
+    align-items: baseline;
+    padding: 0.95rem var(--space-xl);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .flow-who {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .flow-who::before {
+    content: "→ ";
+    color: var(--cyan);
+  }
+
+  .flow-what {
+    font-size: 0.75rem;
+    color: var(--cyan-soft);
+    text-align: right;
+  }
+
+  .flow-none .flow-who {
+    color: var(--text-secondary);
+  }
+
+  .flow-none .flow-who::before {
+    content: "✕ ";
+    color: var(--text-muted);
+  }
+
+  .flow-none .flow-what {
+    color: var(--green);
   }
 
   /* Tiers */
@@ -889,80 +803,10 @@ const threats = [
     max-width: none;
   }
 
-  /* Provider pool */
-  .pool {
-    padding: 0;
-  }
-
-  .pool-head {
-    padding: var(--space-md) var(--space-xl);
-    border-bottom: 1px solid var(--border);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--text-muted);
-  }
-
-  .pool ol {
-    list-style: none;
-  }
-
-  .pool li {
-    display: grid;
-    grid-template-columns: 1.75rem minmax(0, 1fr) auto;
-    gap: var(--space-md);
-    align-items: center;
-    padding: 1.05rem var(--space-xl);
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .pool-n {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .pool-name {
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-
-  .pool-tag {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-  }
-
-  .pool-tag--ok {
-    color: var(--green);
-  }
-
-  .pool-foot {
-    padding: var(--space-lg) var(--space-xl);
-    font-size: 0.95rem;
-  }
-
-  /* More */
-  .more-section {
-    border-top: 1px solid var(--border-subtle);
-  }
-
-  .more-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-2xl);
-  }
-
-  .more h3 {
-    margin-bottom: var(--space-sm);
-  }
-
-  .more p {
-    font-size: 0.95rem;
-  }
-
   /* Research */
   .research-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: var(--space-3xl);
     align-items: center;
   }
@@ -992,8 +836,8 @@ const threats = [
     display: grid;
     grid-template-columns: 2.25rem minmax(0, 1fr) auto;
     gap: var(--space-md);
-    align-items: center;
-    padding: 0.95rem var(--space-lg);
+    align-items: start;
+    padding: 1rem var(--space-lg);
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-subtle);
   }
@@ -1005,15 +849,56 @@ const threats = [
   .threat-n {
     font-size: 0.78rem;
     color: var(--text-muted);
+    padding-top: 0.2rem;
+  }
+
+  .threat-body {
+    display: grid;
+    gap: 0.25rem;
   }
 
   .threat-name {
     font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .threat-fix {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
   }
 
   .threat-tags {
     display: flex;
     gap: 0.4rem;
+  }
+
+  /* Also */
+  .also-section {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .also {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xl);
+  }
+
+  .also p {
+    max-width: 40rem;
+    font-size: 1.05rem;
+  }
+
+  .also-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex: none;
+  }
+
+  .also-link {
+    font-size: 0.82rem;
   }
 
   /* Get */
@@ -1055,32 +940,9 @@ const threats = [
     .ask-caret {
       animation: none;
     }
-
-    .marquee {
-      mask-image: none;
-      -webkit-mask-image: none;
-    }
-
-    .marquee-track {
-      animation: none;
-      width: auto;
-      flex-wrap: wrap;
-      padding: 0 var(--space-xl);
-    }
-
-    .ask-chip[aria-hidden="true"] {
-      display: none;
-    }
-  }
-
-  @media (max-width: 1080px) {
-    .more-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
   }
 
   @media (max-width: 960px) {
-    .why-grid,
     .feature-grid,
     .research-grid {
       grid-template-columns: minmax(0, 1fr);
@@ -1091,7 +953,7 @@ const threats = [
       order: 0;
     }
 
-    .asks-foot {
+    .also {
       flex-direction: column;
       align-items: flex-start;
     }
@@ -1106,10 +968,6 @@ const threats = [
       font-size: 1.08rem;
     }
 
-    .aside {
-      white-space: normal;
-    }
-
     .hero-visual {
       padding-right: 2.5rem;
       margin-top: var(--space-2xl);
@@ -1120,22 +978,57 @@ const threats = [
       bottom: -1.5rem;
     }
 
-    .more-grid {
+    .risks-row {
       grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-xl);
+      gap: 0.5rem;
+      padding-left: var(--space-lg);
+      padding-right: var(--space-lg);
     }
 
-    .ask-chip-text {
-      font-size: 0.95rem;
+    .risks-row--head {
+      display: none;
     }
 
     .tier,
-    .pool li,
-    .pool-head,
-    .pool-foot,
-    .tiers-foot {
+    .tiers-foot,
+    .flow-head,
+    .flow-out li {
       padding-left: var(--space-lg);
       padding-right: var(--space-lg);
+    }
+
+    .flow-home {
+      margin-left: var(--space-lg);
+      margin-right: var(--space-lg);
+    }
+
+    .flow-out li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.2rem;
+    }
+
+    .flow-what {
+      text-align: left;
+    }
+
+    .also-links {
+      flex-wrap: wrap;
+    }
+
+    .threat-list li {
+      grid-template-columns: 1.75rem minmax(0, 1fr);
+      gap: 0.5rem var(--space-sm);
+      padding-left: var(--space-md);
+      padding-right: var(--space-md);
+    }
+
+    .threat-tags {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .threat-body {
+      grid-column: 2;
     }
   }
 </style>
